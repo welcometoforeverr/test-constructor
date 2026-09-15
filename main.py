@@ -66,6 +66,11 @@ def main() -> None:
     created_at = date.today()
     is_published = False
 
+    # Значение поступает как строка и явно преобразуется в целое число.
+    # Это демонстрирует преобразование типов, требуемое в ПР1.
+    passing_score_text = "70"
+    passing_score = int(passing_score_text)
+
     question_text = "Какой тип данных используется для целых чисел в Python?"
     variant_a = "int"
     variant_b = "float"
@@ -93,6 +98,7 @@ def main() -> None:
     print(f"Преподаватель: {teacher_name}")
     print(f"Название теста: {test_title}")
     print(f"Дата создания: {created_at}")
+    print(f"Проходной балл: {passing_score}%")
     print(f"Статус: {status}")
     print()
     print(preview)
