@@ -6,7 +6,6 @@ from experiments import (
     calculate_statistics,
     cancel_experiment,
     create_experiment,
-    get_recipe_experiments,
 )
 from recipes import (
     add_recipe,
