@@ -1,49 +1,33 @@
-"""Functions for working with recipes."""
+"""Collection operations for Recipe objects."""
+
+from models import Recipe
 
 
-def add_recipe(
-    recipes: list[dict],
-    name: str,
-    category: str,
-) -> dict:
-    """Add a recipe to the collection and return the created record."""
-    cleaned_name = name.strip()
-    cleaned_category = category.strip()
-    if len(cleaned_name) < 3:
-        raise ValueError("Название рецепта должно содержать минимум 3 символа")
-    if not cleaned_category:
-        raise ValueError("Категория рецепта не может быть пустой")
-
-    recipe = {
-        "id": max((item["id"] for item in recipes), default=0) + 1,
-        "name": cleaned_name,
-        "category": cleaned_category,
-    }
+def add_recipe(recipes: list[Recipe], name: str, category: str) -> Recipe:
+    """Create a Recipe object and add it to the collection."""
+    recipe_id = max((recipe.id for recipe in recipes), default=0) + 1
+    recipe = Recipe(recipe_id, name, category)
     recipes.append(recipe)
     return recipe
 
 
-def find_recipes(recipes: list[dict], query: str) -> list[dict]:
-    """Find recipes whose names contain the requested substring."""
-    normalized_query = query.strip().lower()
-    return [
-        recipe
-        for recipe in recipes
-        if normalized_query in recipe["name"].lower()
-    ]
+def find_recipes(recipes: list[Recipe], query: str) -> list[Recipe]:
+    """Find recipes by name substring."""
+    normalized = query.strip().lower()
+    return [recipe for recipe in recipes if normalized in recipe.name.lower()]
 
 
 def filter_recipes_by_category(
-    recipes: list[dict],
+    recipes: list[Recipe],
     category: str,
 ):
-    """Yield recipes belonging to the specified category."""
-    normalized_category = category.strip().lower()
+    """Yield recipes from the requested category."""
+    normalized = category.strip().lower()
     for recipe in recipes:
-        if recipe["category"].lower() == normalized_category:
+        if recipe.category.lower() == normalized:
             yield recipe
 
 
-def sort_recipes(recipes: list[dict]) -> list[dict]:
-    """Return recipes sorted alphabetically by name."""
-    return sorted(recipes, key=lambda recipe: recipe["name"].lower())
+def sort_recipes(recipes: list[Recipe]) -> list[Recipe]:
+    """Return recipes sorted by name."""
+    return sorted(recipes, key=lambda recipe: recipe.name.lower())
