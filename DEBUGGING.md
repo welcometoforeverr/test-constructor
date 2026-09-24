@@ -7,33 +7,33 @@
 1. Откройте `main.py`.
 2. Поставьте breakpoint на строке:
    ```python
-   title_is_valid = validate_test_title(test_title)
+   recipe_is_valid = validate_recipe_name(recipe_name)
    ```
 3. Запустите `main.py` в режиме **Debug**.
 4. После остановки посмотрите значения:
-   - `teacher_name`;
-   - `test_title`;
-   - `question_text`;
-   - `correct_variant`;
-   - `is_published`.
-5. Выполните несколько шагов **Step Over** и проследите появление значений `title_is_valid`, `question_is_valid`, `status` и `preview`.
+   - `user_name`;
+   - `recipe_name`;
+   - `temperature`;
+   - `duration_minutes`;
+   - `taste_score`.
+5. Выполните несколько шагов **Step Over** и проследите появление значений `recipe_is_valid`, `experiment_is_valid`, `result` и `preview`.
 
 ## Упражнение с ошибкой
 
-Для демонстрации поиска дефекта временно замените в функции `validate_test_title()` строку:
+Для демонстрации поиска дефекта временно замените в функции `validate_recipe_name()` строку:
 
 ```python
-return len(cleaned_title) >= 3
+return len(cleaned_name) >= 3
 ```
 
 на ошибочную:
 
 ```python
-return len(cleaned_title) < 3
+return len(cleaned_name) < 3
 ```
 
-После этого корректное название `"Основы Python"` станет считаться неправильным, а статус теста изменится на сообщение о невозможности публикации.
+После этого корректное название `"Шоколадный кекс"` станет считаться неправильным, а результат изменится на сообщение о некорректно заполненном эксперименте.
 
-Через breakpoint внутри `validate_test_title()` видно, что `cleaned_title` заполнен правильно, но условие сравнения записано наоборот. Верните `>= 3` и повторно запустите программу.
+Через breakpoint внутри `validate_recipe_name()` видно, что `cleaned_name` заполнен правильно, но условие сравнения записано наоборот. Верните `>= 3` и повторно запустите программу.
 
-**В итоговом проекте ошибка уже исправлена.**
+**В итоговом проекте ошибка исправлена.**
