@@ -1,105 +1,95 @@
-"""Начальный сценарий проекта «Конструктор тестов» для ПР1.
+"""Начальный сценарий проекта «Система учета кулинарных экспериментов» для ПР1.
 
-Тема проекта: №87 «Конструктор тестов».
-Сущности: преподаватель, тест, вопрос, вариант ответа.
+Сущности: пользователь, рецепт, эксперимент, результат.
 """
 
 from datetime import date
 
 
-def validate_test_title(title: str) -> bool:
-    """Проверить, что название теста можно использовать."""
-    cleaned_title = title.strip()
-    return len(cleaned_title) >= 3
+def validate_recipe_name(recipe_name: str) -> bool:
+    """Проверить, что название рецепта можно использовать."""
+    cleaned_name = recipe_name.strip()
+    return len(cleaned_name) >= 3
 
 
-def validate_question(question_text: str, correct_variant: str) -> bool:
-    """Проверить текст вопроса и обозначение правильного варианта."""
-    has_text = len(question_text.strip()) >= 5
-    valid_variant = (
-        correct_variant == "A"
-        or correct_variant == "B"
-        or correct_variant == "C"
-        or correct_variant == "D"
-    )
-    return has_text and valid_variant
+def validate_experiment(temperature: int, duration_minutes: int, taste_score: int) -> bool:
+    """Проверить основные параметры кулинарного эксперимента."""
+    valid_temperature = temperature > 0
+    valid_duration = duration_minutes > 0
+    valid_score = 1 <= taste_score <= 10
+    return valid_temperature and valid_duration and valid_score
 
 
-def get_test_status(
-    is_published: bool,
-    is_title_valid: bool,
-    is_question_valid: bool,
+def get_experiment_result(is_valid: bool, taste_score: int) -> str:
+    """Определить результат эксперимента."""
+    if not is_valid:
+        return "Эксперимент заполнен некорректно"
+    if taste_score >= 8:
+        return "Эксперимент успешный"
+    if taste_score >= 5:
+        return "Результат удовлетворительный"
+    return "Эксперимент неудачный"
+
+
+def build_experiment_preview(
+    recipe_name: str,
+    change_description: str,
+    temperature: int,
+    duration_minutes: int,
+    taste_score: int,
+    result: str,
 ) -> str:
-    """Вернуть состояние теста на текущем этапе создания."""
-    if not is_title_valid:
-        return "Нельзя опубликовать: проверьте название теста"
-    if not is_question_valid:
-        return "Нельзя опубликовать: проверьте вопрос и правильный вариант"
-    if is_published:
-        return "Тест опубликован"
-    return "Тест готов к публикации"
-
-
-def build_question_preview(
-    question_text: str,
-    variant_a: str,
-    variant_b: str,
-    variant_c: str,
-    variant_d: str,
-    correct_variant: str,
-) -> str:
-    """Сформировать текстовый предпросмотр созданного вопроса."""
+    """Сформировать текстовый отчет о кулинарном эксперименте."""
     return (
-        f"Вопрос: {question_text}\n"
-        f"A. {variant_a}\n"
-        f"B. {variant_b}\n"
-        f"C. {variant_c}\n"
-        f"D. {variant_d}\n"
-        f"Правильный вариант: {correct_variant}"
+        f"Рецепт: {recipe_name}\n"
+        f"Изменение: {change_description}\n"
+        f"Температура: {temperature} °C\n"
+        f"Время приготовления: {duration_minutes} мин\n"
+        f"Оценка вкуса: {taste_score}/10\n"
+        f"Результат: {result}"
     )
 
 
 def main() -> None:
-    """Показать один законченный сценарий конструктора тестов."""
-    teacher_name = "Иванов Иван Иванович"
-    test_title = "Основы Python"
-    created_at = date.today()
-    is_published = False
+    """Показать один законченный сценарий учета кулинарного эксперимента."""
+    user_name = "Калугин Никита"
+    recipe_name = "Шоколадный кекс"
+    experiment_date = date.today()
 
-    # Значение поступает как строка и явно преобразуется в целое число.
+    change_description = "Уменьшено количество сахара на 20%"
+
+    # Параметры получены как строки и преобразуются в числа.
     # Это демонстрирует преобразование типов, требуемое в ПР1.
-    passing_score_text = "70"
-    passing_score = int(passing_score_text)
+    temperature_text = "180"
+    duration_text = "35"
+    taste_score_text = "9"
 
-    question_text = "Какой тип данных используется для целых чисел в Python?"
-    variant_a = "int"
-    variant_b = "float"
-    variant_c = "str"
-    variant_d = "bool"
-    correct_variant = "A"
+    temperature = int(temperature_text)
+    duration_minutes = int(duration_text)
+    taste_score = int(taste_score_text)
 
-    title_is_valid = validate_test_title(test_title)
-    question_is_valid = validate_question(question_text, correct_variant)
-    status = get_test_status(
-        is_published,
-        title_is_valid,
-        question_is_valid,
+    recipe_is_valid = validate_recipe_name(recipe_name)
+    experiment_is_valid = validate_experiment(
+        temperature,
+        duration_minutes,
+        taste_score,
     )
-    preview = build_question_preview(
-        question_text,
-        variant_a,
-        variant_b,
-        variant_c,
-        variant_d,
-        correct_variant,
+    result = get_experiment_result(
+        recipe_is_valid and experiment_is_valid,
+        taste_score,
+    )
+    preview = build_experiment_preview(
+        recipe_name,
+        change_description,
+        temperature,
+        duration_minutes,
+        taste_score,
+        result,
     )
 
-    print("=== Конструктор тестов ===")
-    print(f"Преподаватель: {teacher_name}")
-    print(f"Название теста: {test_title}")
-    print(f"Дата создания: {created_at}")
-    print(f"Проходной балл: {passing_score}%")
-    print(f"Статус: {status}")
+    print("=== Система учета кулинарных экспериментов ===")
+    print(f"Пользователь: {user_name}")
+    print(f"Дата эксперимента: {experiment_date}")
     print()
     print(preview)
 
