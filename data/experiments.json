@@ -1,0 +1,12 @@
+[
+  {
+    "id": 1,
+    "recipe_id": 1,
+    "change": "Уменьшено количество сахара на 20%",
+    "temperature": 180,
+    "duration_minutes": 35,
+    "taste_score": 9,
+    "date": "2026-09-24",
+    "result": "Эксперимент успешный"
+  }
+]
