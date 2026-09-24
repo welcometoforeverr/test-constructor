@@ -1,3 +1,4 @@
+from models import Recipe
 from recipes import (
     add_recipe,
     filter_recipes_by_category,
@@ -6,25 +7,18 @@ from recipes import (
 )
 
 
-def test_add_recipe() -> None:
-    recipes = []
+def test_add_recipe_returns_object() -> None:
+    recipes: list[Recipe] = []
     recipe = add_recipe(recipes, "Сырники", "Завтрак")
-    assert recipe["id"] == 1
-    assert recipes[0]["name"] == "Сырники"
+    assert isinstance(recipe, Recipe)
+    assert recipe.id == 1
 
 
-def test_find_and_filter_recipes() -> None:
+def test_find_filter_and_sort() -> None:
     recipes = [
-        {"id": 1, "name": "Шоколадный кекс", "category": "Выпечка"},
-        {"id": 2, "name": "Томатный соус", "category": "Соусы"},
+        Recipe(1, "Шоколадный кекс", "Выпечка"),
+        Recipe(2, "Блины", "Завтрак"),
     ]
-    assert find_recipes(recipes, "кекс")[0]["id"] == 1
-    assert list(filter_recipes_by_category(recipes, "соусы"))[0]["id"] == 2
-
-
-def test_sort_recipes() -> None:
-    recipes = [
-        {"id": 1, "name": "Шоколадный кекс", "category": "Выпечка"},
-        {"id": 2, "name": "Блины", "category": "Завтрак"},
-    ]
-    assert sort_recipes(recipes)[0]["name"] == "Блины"
+    assert find_recipes(recipes, "кекс")[0].id == 1
+    assert list(filter_recipes_by_category(recipes, "завтрак"))[0].id == 2
+    assert sort_recipes(recipes)[0].name == "Блины"
