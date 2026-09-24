@@ -2,36 +2,25 @@ from experiments import (
     calculate_statistics,
     cancel_experiment,
     create_experiment,
-    get_experiment_result,
-    validate_experiment,
 )
+from models import Recipe, User
 
 
-def test_validate_and_result() -> None:
-    assert validate_experiment(180, 35, 9)
-    assert get_experiment_result(True, 9) == "Эксперимент успешный"
-
-
-def test_create_and_cancel_experiment() -> None:
+def test_create_cancel_and_statistics() -> None:
+    user = User(1, "Никита", "n@example.com")
+    recipe = Recipe(1, "Кекс", "Выпечка")
     experiments = []
-    created = create_experiment(
+    experiment = create_experiment(
         experiments,
-        1,
+        user,
+        recipe,
         "Меньше сахара",
         180,
         35,
         9,
         "2026-09-24",
     )
-    assert created["id"] == 1
-    assert cancel_experiment(experiments, 1)
-    assert experiments == []
-
-
-def test_statistics() -> None:
-    experiments = [
-        {"taste_score": 8},
-        {"taste_score": 10},
-    ]
-    stats = calculate_statistics(experiments)
-    assert stats == {"count": 2, "average_score": 9.0}
+    assert experiment.result.status == "Эксперимент успешный"
+    assert calculate_statistics(experiments)["average_score"] == 9.0
+    assert cancel_experiment(experiments, experiment.id)
+    assert calculate_statistics(experiments)["count"] == 0
