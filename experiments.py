@@ -1,91 +1,66 @@
-"""Functions for working with culinary experiments."""
+"""Collection operations for Experiment objects."""
 
-
-def validate_experiment(
-    temperature: int,
-    duration_minutes: int,
-    taste_score: int,
-) -> bool:
-    """Check whether the main experiment parameters are valid."""
-    return (
-        temperature > 0
-        and duration_minutes > 0
-        and 1 <= taste_score <= 10
-    )
-
-
-def get_experiment_result(is_valid: bool, taste_score: int) -> str:
-    """Return a text result for a culinary experiment."""
-    if not is_valid:
-        return "Эксперимент заполнен некорректно"
-    if taste_score >= 8:
-        return "Эксперимент успешный"
-    if taste_score >= 5:
-        return "Результат удовлетворительный"
-    return "Эксперимент неудачный"
+from models import Experiment, ExperimentResult, Recipe, User
 
 
 def create_experiment(
-    experiments: list[dict],
-    recipe_id: int,
-    change_description: str,
+    experiments: list[Experiment],
+    user: User,
+    recipe: Recipe,
+    change: str,
     temperature: int,
     duration_minutes: int,
     taste_score: int,
     experiment_date: str,
-) -> dict:
-    """Validate parameters and add a culinary experiment."""
-    if not validate_experiment(temperature, duration_minutes, taste_score):
-        raise ValueError("Некорректные параметры эксперимента")
-    if not change_description.strip():
-        raise ValueError("Описание изменения не может быть пустым")
-
-    result = get_experiment_result(True, taste_score)
-    experiment = {
-        "id": max((item["id"] for item in experiments), default=0) + 1,
-        "recipe_id": recipe_id,
-        "change": change_description.strip(),
-        "temperature": temperature,
-        "duration_minutes": duration_minutes,
-        "taste_score": taste_score,
-        "date": experiment_date,
-        "result": result,
-    }
+) -> Experiment:
+    """Create an Experiment object and add it to the collection."""
+    experiment_id = max((item.id for item in experiments), default=0) + 1
+    result = ExperimentResult.from_score(taste_score)
+    experiment = Experiment(
+        experiment_id,
+        user,
+        recipe,
+        change,
+        temperature,
+        duration_minutes,
+        experiment_date,
+        result,
+    )
     experiments.append(experiment)
     return experiment
 
 
-def cancel_experiment(experiments: list[dict], experiment_id: int) -> bool:
-    """Delete an experiment by identifier and report whether it was found."""
-    for index, experiment in enumerate(experiments):
-        if experiment["id"] == experiment_id:
-            del experiments[index]
+def cancel_experiment(
+    experiments: list[Experiment],
+    experiment_id: int,
+) -> bool:
+    """Find experiment and change its state through the object method."""
+    for experiment in experiments:
+        if experiment.id == experiment_id:
+            experiment.cancel()
             return True
     return False
 
 
 def get_recipe_experiments(
-    experiments: list[dict],
-    recipe_id: int,
-) -> list[dict]:
-    """Return all experiments associated with a recipe."""
+    experiments: list[Experiment],
+    recipe: Recipe,
+) -> list[Experiment]:
+    """Return experiments related to a recipe object."""
     return [
         experiment
         for experiment in experiments
-        if experiment["recipe_id"] == recipe_id
+        if experiment.recipe is recipe
     ]
 
 
-def calculate_statistics(experiments: list[dict]) -> dict[str, float]:
-    """Calculate experiment count and average taste score."""
-    if not experiments:
+def calculate_statistics(experiments: list[Experiment]) -> dict[str, float]:
+    """Calculate count and average score for active experiments."""
+    active = [item for item in experiments if not item.is_cancelled]
+    if not active:
         return {"count": 0, "average_score": 0.0}
-
-    total_score = 0
-    for experiment in experiments:
-        total_score += experiment["taste_score"]
-
+    total = sum(item.result.taste_score for item in active)
     return {
-        "count": len(experiments),
-        "average_score": round(total_score / len(experiments), 2),
+        "count": len(active),
+        "average_score": round(total / len(active), 2),
     }
