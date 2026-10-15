@@ -1,18 +1,13 @@
-# Отладка ПР3
+# Проверка и отладка ПР5 и ПР6
 
-## Что показать преподавателю
-
-1. Поставить breakpoint в `storage.py` внутри `load_experiments()`.
-2. Запустить `main.py` в Debug.
-3. После загрузки показать, что коллекции содержат объекты `User`, `Recipe`, `Experiment`, а не словари.
-4. Открыть объект эксперимента и показать связи:
-   - `experiment.user.name`;
-   - `experiment.recipe.name`;
-   - `experiment.result.taste_score`.
-5. Поставить breakpoint в методе `Experiment.cancel()`, выбрать отмену эксперимента в меню и пошагово увидеть изменение `is_cancelled` с `False` на `True`.
-
-## Что объяснить
-
-`Experiment` использует композицию: внутри объекта хранятся связанные объекты `User`, `Recipe` и `ExperimentResult`. При сохранении в JSON объекты преобразуются в словари через `to_data()`, а при загрузке восстанавливаются через `from_data()`.
-
-Для демонстрации исключения можно попробовать создать рецепт с названием короче трех символов: конструктор `Recipe` вызовет `ValueError`, а интерфейс обработает ошибку без аварийного завершения программы.
+1. Установите зависимости: `python -m pip install -r requirements.txt`.
+2. Выполните `python manage.py check`.
+3. Запустите сервер: `python manage.py runserver`.
+4. Проверьте `/`, `/recipes/`, `/recipes/1/`, `/experiments/`, `/experiments/1/`.
+5. Откройте `/recipes/9999/` — ожидается статус HTTP 404 и шаблон «Рецепт не найден».
+6. Откройте `/experiments/9999/` — аналогичная проверка 404.
+7. В `web_recipes/views.py` поставьте breakpoint на вызове `get_recipes()` и проследите передачу объектов в контекст.
+8. В `templates/base.html` покажите `extends` в дочернем шаблоне, `block` и `include` навигации.
+9. В `static/homepage/css/style.css` временно измените цвет акцента и обновите страницу.
+10. Кнопка «Контраст» в меню вызывает обработчик `static/homepage/js/main.js`.
+11. Проверьте код командой `python -m flake8 . --extend-exclude=venv,.venv`, тесты — `python -m pytest -v`.

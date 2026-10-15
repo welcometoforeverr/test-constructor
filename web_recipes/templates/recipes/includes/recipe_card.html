@@ -1,0 +1,8 @@
+<article class="surface recipe-card h-100">
+    <span class="tag">{{ recipe.category|default:"Без категории" }}</span>
+    <h2 class="h4 mt-3">{{ recipe.name }}</h2>
+    <p class="meta">Рецепт №{{ recipe.id }}</p>
+    <a class="card-link" href="{% url 'recipes:detail' recipe.id %}">
+        Открыть рецепт →
+    </a>
+</article>

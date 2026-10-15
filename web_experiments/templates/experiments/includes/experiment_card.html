@@ -1,0 +1,14 @@
+<article class="surface h-100">
+    <div class="d-flex justify-content-between align-items-start gap-2">
+        <span class="meta">Эксперимент №{{ experiment.id }}</span>
+        {% include "experiments/includes/experiment_status.html" %}
+    </div>
+    <h2 class="h4 mt-3">{{ experiment.recipe.name }}</h2>
+    <p>{{ experiment.change|truncatechars:110 }}</p>
+    <p class="meta">Автор: {{ experiment.user.name|default:"Не указан" }}</p>
+    <p class="meta">Вкус: {{ experiment.result.taste_score }}/10</p>
+    <a class="card-link"
+       href="{% url 'experiments:detail' experiment.id %}">
+        Подробнее →
+    </a>
+</article>

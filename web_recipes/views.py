@@ -1,42 +1,38 @@
-"""PR5: recipe HTTP views with direct HTML output."""
-from django.http import HttpResponse
-from django.utils.html import format_html, format_html_join
+"""Read-only recipe views with Django templates (PR6)."""
+from django.shortcuts import render
 
-from homepage.views import page
 from web_data import get_recipes
 
 
 def recipe_list(request):
-    """List the available recipe objects."""
+    """Show recipes loaded from the existing JSON domain store."""
     recipes = get_recipes()
-    items = format_html_join(
-        "",
-        "<li class='list-group-item'><a href='/recipes/{}/'>{}</a>"
-        " <span class='text-secondary'>— {}</span></li>",
-        ((recipe.id, recipe.name, recipe.category) for recipe in recipes),
+    query = request.GET.get("q", "").strip()
+    if query:
+        recipes = [
+            item for item in recipes
+            if query.lower() in item.name.lower()
+        ]
+    return render(
+        request,
+        "recipes/recipe_list.html",
+        {
+            "page_title": "Рецепты",
+            "recipes": sorted(recipes, key=lambda item: item.name.lower()),
+            "query": query,
+        },
     )
-    if not recipes:
-        items = format_html("<li>Рецептов пока нет</li>")
-    return page("Рецепты", format_html(
-        "<h1>Рецепты</h1><ul class='list-group'>{}</ul>", items
-    ))
 
 
-def recipe_detail(request, recipe_id: int) -> HttpResponse:
-    """Display one recipe or the correct HTTP 404 status."""
+def recipe_detail(request, recipe_id: int):
+    """Show recipe details; missing IDs return 404 with a rendered template."""
     recipe = next(
         (item for item in get_recipes() if item.id == recipe_id),
         None,
     )
-    if recipe is None:
-        response = page("Не найдено", format_html(
-            "<h1>Рецепт не найден</h1>"
-        ))
-        response.status_code = 404
-        return response
-    return page(recipe.name, format_html(
-        "<h1>{}</h1><p>Категория: {}</p>"
-        "<a href='/recipes/'>К списку рецептов</a>",
-        recipe.name,
-        recipe.category,
-    ))
+    return render(
+        request,
+        "recipes/recipe_detail.html",
+        {"page_title": "Рецепт", "recipe": recipe},
+        status=404 if recipe is None else 200,
+    )

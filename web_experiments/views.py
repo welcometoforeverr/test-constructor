@@ -1,50 +1,34 @@
-"""PR5: experiment HTTP views with direct HTML output."""
-from django.http import HttpResponse
-from django.utils.html import format_html, format_html_join
+"""Read-only experiment views using the domain object graph (PR6)."""
+from django.shortcuts import render
 
-from homepage.views import page
 from web_data import get_catalog
 
 
 def experiment_list(request):
-    """List the experiments saved in JSON."""
+    """Display every recorded experiment and its state."""
     _, _, experiments = get_catalog()
-    items = format_html_join(
-        "",
-        "<li class='list-group-item'><a href='/experiments/{}/'>"
-        "Эксперимент №{}</a> — {} — {}</li>",
-        (
-            (item.id, item.id, item.recipe.name, item.status)
-            for item in experiments
-        ),
+    return render(
+        request,
+        "experiments/experiment_list.html",
+        {
+            "page_title": "Эксперименты",
+            "experiments": sorted(
+                experiments, key=lambda item: item.id, reverse=True
+            ),
+        },
     )
-    if not experiments:
-        items = format_html("<li>Экспериментов пока нет</li>")
-    return page("Эксперименты", format_html(
-        "<h1>Эксперименты</h1><ul class='list-group'>{}</ul>", items
-    ))
 
 
-def experiment_detail(request, experiment_id: int) -> HttpResponse:
-    """Display one experiment or return HTTP 404."""
+def experiment_detail(request, experiment_id: int):
+    """Show one experiment or a styled 404 response."""
     _, _, experiments = get_catalog()
-    item = next(
-        (row for row in experiments if row.id == experiment_id),
+    experiment = next(
+        (item for item in experiments if item.id == experiment_id),
         None,
     )
-    if item is None:
-        response = page("Не найдено", format_html(
-            "<h1>Эксперимент не найден</h1>"
-        ))
-        response.status_code = 404
-        return response
-    return page("Эксперимент", format_html(
-        "<h1>Эксперимент №{}</h1><p>Рецепт: {}</p>"
-        "<p>Автор: {}</p><p>Изменение: {}</p>"
-        "<p>Температура: {} °C, время: {} мин</p>"
-        "<p>Оценка: {}/10, статус: {}</p>"
-        "<a href='/experiments/'>К списку экспериментов</a>",
-        item.id, item.recipe.name, item.user.name, item.change,
-        item.temperature, item.duration_minutes,
-        item.result.taste_score, item.status,
-    ))
+    return render(
+        request,
+        "experiments/experiment_detail.html",
+        {"page_title": "Эксперимент", "experiment": experiment},
+        status=404 if experiment is None else 200,
+    )

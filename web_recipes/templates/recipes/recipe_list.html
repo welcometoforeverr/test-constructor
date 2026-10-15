@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+{% block title %}Рецепты — CulinaryLab{% endblock %}
+{% block content %}
+<div class="page-intro">
+    <div class="eyebrow">КАТАЛОГ</div>
+    <h1>Наши рецепты</h1>
+    <p>Блюда, с которыми можно экспериментировать.</p>
+</div>
+<form class="search-form" method="get" action="{% url 'recipes:list' %}">
+    <label class="visually-hidden" for="query">Поиск по названию</label>
+    <input class="form-control" id="query" name="q"
+           value="{{ query|default:'' }}" placeholder="Поиск по рецептам">
+    <button class="btn btn-primary" type="submit">Найти</button>
+</form>
+<div class="row g-4 mt-1">
+    {% for recipe in recipes %}
+    <div class="col-sm-6 col-lg-4">
+        {% include "recipes/includes/recipe_card.html" %}
+    </div>
+    {% empty %}
+    <p class="empty-state">По вашему запросу рецепты не найдены.</p>
+    {% endfor %}
+</div>
+{% endblock %}

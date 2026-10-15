@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+{% block title %}Эксперименты — CulinaryLab{% endblock %}
+{% block content %}
+<div class="page-intro">
+    <div class="eyebrow">ЖУРНАЛ</div>
+    <h1>Эксперименты</h1>
+    <p>История изменений рецептов и их результатов.</p>
+</div>
+<p class="meta">Всего записей: {{ experiments|length }}</p>
+<div class="row g-4">
+    {% for experiment in experiments %}
+    <div class="col-md-6">
+        {% include "experiments/includes/experiment_card.html" %}
+    </div>
+    {% empty %}
+    <p class="empty-state">Экспериментов ещё нет.</p>
+    {% endfor %}
+</div>
+{% endblock %}
