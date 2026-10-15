@@ -61,9 +61,9 @@
 ```bash
 python -m venv .venv
 # Windows PowerShell:
-.venv\\Scripts\\python.exe -m pip install -r requirements.txt
-.venv\\Scripts\\python.exe manage.py check
-.venv\\Scripts\\python.exe manage.py runserver
+.venv\Scripts\python.exe -m pip install -r requirements.txt
+.venv\Scripts\python.exe manage.py check
+.venv\Scripts\python.exe manage.py runserver
 ```
 
 Адрес сайта: **http://127.0.0.1:8000/**.
