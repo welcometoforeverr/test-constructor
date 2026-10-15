@@ -26,9 +26,9 @@
 
 ## Проверить на компьютере перед сдачей
 
-- [ ] python manage.py check
-- [ ] python -m pytest -v
-- [ ] python -m flake8 . --extend-exclude=venv,.venv
+- [x] python manage.py check — GitHub Actions: passed
+- [x] python -m pytest -v — GitHub Actions: passed
+- [x] python -m flake8 . --extend-exclude=venv,.venv — GitHub Actions: passed
 - [ ] Открыть пять страниц в браузере
 - [ ] Продемонстрировать изменение стиля и переключение контраста
 - [ ] Отдельно пройти и показать задания Яндекс Практикума (ПР5, ПР6)
