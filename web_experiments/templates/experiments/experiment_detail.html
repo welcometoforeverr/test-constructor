@@ -4,24 +4,21 @@
 {% if experiment %}
 <a class="back-link" href="{% url 'experiments:list' %}">← Все эксперименты</a>
 <section class="detail surface mt-3">
-    <div class="d-flex justify-content-between flex-wrap gap-2">
-        <span class="eyebrow">ЭКСПЕРИМЕНТ №{{ experiment.id }}</span>
-        {% include "experiments/includes/experiment_status.html" %}
-    </div>
-    <h1 class="mt-3">{{ experiment.recipe.name }}</h1>
-    <p class="lead">{{ experiment.change }}</p>
+    <div class="eyebrow">SQL JOIN · ЭКСПЕРИМЕНТ №{{ experiment.id }}</div>
+    <h1 class="mt-3">{{ experiment.recipe_name }}</h1>
+    <p class="lead">{{ experiment.change_description }}</p>
     <dl class="detail-grid mt-4">
-        <div><dt>Автор</dt><dd>{{ experiment.user.name }}</dd></div>
-        <div><dt>Дата</dt><dd>{{ experiment.date|default:"Не указана" }}</dd></div>
+        <div><dt>Автор</dt><dd>{{ experiment.user_name }}</dd></div>
+        <div><dt>Дата</dt><dd>{{ experiment.experiment_date }}</dd></div>
         <div><dt>Температура</dt>
             <dd>{{ experiment.temperature }} °C</dd></div>
         <div><dt>Время</dt>
             <dd>{{ experiment.duration_minutes }} мин</dd></div>
-        <div><dt>Оценка вкуса</dt>
-            <dd>{{ experiment.result.taste_score }} / 10</dd></div>
+        <div><dt>Оценка</dt>
+            <dd>{{ experiment.taste_score }} / 10</dd></div>
         <div><dt>Итог</dt><dd>{{ experiment.status }}</dd></div>
     </dl>
-    <a href="{% url 'recipes:detail' experiment.recipe.id %}">
+    <a href="{% url 'recipes:detail' experiment.recipe_id %}">
         Перейти к рецепту →
     </a>
 </section>

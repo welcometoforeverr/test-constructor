@@ -6,10 +6,15 @@
 <section class="detail surface mt-3">
     <span class="tag">{{ recipe.category }}</span>
     <h1 class="mt-3">{{ recipe.name }}</h1>
-    <p class="meta">Идентификатор рецепта: {{ recipe.id }}</p>
-    <p>Это исходная версия рецепта для проведения кулинарных экспериментов.</p>
+    <dl class="detail-grid mt-4">
+        <div><dt>ID</dt><dd>{{ recipe.id }}</dd></div>
+        <div><dt>Экспериментов</dt>
+            <dd>{{ recipe.experiments_count }}</dd></div>
+        <div><dt>Средняя оценка</dt>
+            <dd>{{ recipe.average_score|default:"—" }}</dd></div>
+    </dl>
     <a class="btn btn-primary" href="{% url 'experiments:list' %}">
-        Посмотреть эксперименты
+        Журнал экспериментов
     </a>
 </section>
 {% else %}

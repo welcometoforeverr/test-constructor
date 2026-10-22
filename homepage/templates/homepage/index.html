@@ -2,17 +2,17 @@
 {% block title %}Главная — CulinaryLab{% endblock %}
 {% block content %}
 <section class="hero">
-    <div class="eyebrow">КУЛИНАРНАЯ ЛАБОРАТОРИЯ</div>
+    <div class="eyebrow">КУЛИНАРНАЯ ЛАБОРАТОРИЯ · SQLITE</div>
     <h1>Каждый рецепт —<br><span>новый эксперимент.</span></h1>
-    <p class="lead">Сохраняйте идеи, сравнивайте результаты и находите
-        идеальный способ приготовления любимых блюд.</p>
+    <p class="lead">Данные ПР7 загружаются из SQLite SQL-запросами
+        и передаются в Django-шаблоны.</p>
     <div class="d-flex flex-wrap gap-3 mt-4">
         <a class="btn btn-primary btn-lg" href="{% url 'recipes:list' %}">
             Смотреть рецепты
         </a>
         <a class="btn btn-outline-dark btn-lg"
-           href="{% url 'experiments:list' %}">
-            Журнал экспериментов
+           href="{% url 'experiments:statistics' %}">
+            Статистика
         </a>
     </div>
 </section>
@@ -21,12 +21,12 @@
         <strong>{{ recipes_count|default:"0" }}</strong></div>
     <div class="stat-card"><span>Экспериментов</span>
         <strong>{{ experiments_count|default:"0" }}</strong></div>
-    <div class="stat-card"><span>Пользователей</span>
-        <strong>{{ users_count|default:"0" }}</strong></div>
+    <div class="stat-card"><span>Средняя оценка</span>
+        <strong>{{ average_score|default:"—" }}</strong></div>
 </section>
 <section class="mt-5">
     <div class="section-heading">
-        <h2>Недавние эксперименты</h2>
+        <h2>Последние эксперименты</h2>
         <a href="{% url 'experiments:list' %}">Все записи →</a>
     </div>
     <div class="row g-3">
@@ -34,8 +34,8 @@
         <div class="col-md-4">
             <article class="surface h-100">
                 <p class="meta">Опыт №{{ experiment.id }}</p>
-                <h3 class="h5">{{ experiment.recipe.name }}</h3>
-                <p>{{ experiment.change|truncatechars:100 }}</p>
+                <h3 class="h5">{{ experiment.recipe_name }}</h3>
+                <p>{{ experiment.change_description|truncatechars:100 }}</p>
                 <a href="{% url 'experiments:detail' experiment.id %}">
                     Подробнее →
                 </a>

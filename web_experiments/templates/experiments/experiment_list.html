@@ -2,18 +2,41 @@
 {% block title %}Эксперименты — CulinaryLab{% endblock %}
 {% block content %}
 <div class="page-intro">
-    <div class="eyebrow">ЖУРНАЛ</div>
+    <div class="eyebrow">SQL · JOIN + WHERE</div>
     <h1>Эксперименты</h1>
-    <p>История изменений рецептов и их результатов.</p>
+    <p>Данные объединяют experiments, recipes, users и experiment_results.</p>
 </div>
-<p class="meta">Всего записей: {{ experiments|length }}</p>
+<form class="search-form mb-4" method="get"
+      action="{% url 'experiments:list' %}">
+    <label for="min-score" class="form-label mb-0">Минимальная оценка</label>
+    <input class="form-control" id="min-score" name="min_score"
+           type="number" min="1" max="10" value="{{ min_score }}">
+    <button class="btn btn-primary" type="submit">Фильтровать</button>
+</form>
+<p>
+    <a href="{% url 'experiments:statistics' %}">
+        Открыть SQL-статистику →
+    </a>
+</p>
 <div class="row g-4">
     {% for experiment in experiments %}
     <div class="col-md-6">
-        {% include "experiments/includes/experiment_card.html" %}
+        <article class="surface h-100">
+            <div class="d-flex justify-content-between gap-2">
+                <span class="meta">№{{ experiment.id }}</span>
+                <span class="tag">{{ experiment.taste_score }}/10</span>
+            </div>
+            <h2 class="h4 mt-3">{{ experiment.recipe_name }}</h2>
+            <p>{{ experiment.change_description|truncatechars:110 }}</p>
+            <p class="meta">{{ experiment.user_name }} ·
+                {{ experiment.status }}</p>
+            <a href="{% url 'experiments:detail' experiment.id %}">
+                Подробнее →
+            </a>
+        </article>
     </div>
     {% empty %}
-    <p class="empty-state">Экспериментов ещё нет.</p>
+    <p class="empty-state">Эксперименты с такой оценкой не найдены.</p>
     {% endfor %}
 </div>
 {% endblock %}

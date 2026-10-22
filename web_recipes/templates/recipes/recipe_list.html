@@ -2,23 +2,37 @@
 {% block title %}Рецепты — CulinaryLab{% endblock %}
 {% block content %}
 <div class="page-intro">
-    <div class="eyebrow">КАТАЛОГ</div>
+    <div class="eyebrow">SQL · SELECT + WHERE + GROUP BY</div>
     <h1>Наши рецепты</h1>
-    <p>Блюда, с которыми можно экспериментировать.</p>
+    <p>Список формируется запросом к таблице recipes.</p>
 </div>
 <form class="search-form" method="get" action="{% url 'recipes:list' %}">
     <label class="visually-hidden" for="query">Поиск по названию</label>
     <input class="form-control" id="query" name="q"
-           value="{{ query|default:'' }}" placeholder="Поиск по рецептам">
+           value="{{ query|default:'' }}" placeholder="Название рецепта">
+    <label class="visually-hidden" for="category">Категория</label>
+    <input class="form-control" id="category" name="category"
+           value="{{ category|default:'' }}" placeholder="Категория">
     <button class="btn btn-primary" type="submit">Найти</button>
 </form>
+<p class="mt-3">
+    <a href="{% url 'recipes:categories' %}">Статистика категорий →</a>
+</p>
 <div class="row g-4 mt-1">
     {% for recipe in recipes %}
     <div class="col-sm-6 col-lg-4">
-        {% include "recipes/includes/recipe_card.html" %}
+        <article class="surface recipe-card h-100">
+            <span class="tag">{{ recipe.category }}</span>
+            <h2 class="h4 mt-3">{{ recipe.name }}</h2>
+            <p class="meta">Экспериментов: {{ recipe.experiments_count }}</p>
+            <a class="card-link"
+               href="{% url 'recipes:detail' recipe.id %}">
+                Открыть рецепт →
+            </a>
+        </article>
     </div>
     {% empty %}
-    <p class="empty-state">По вашему запросу рецепты не найдены.</p>
+    <p class="empty-state">По запросу ничего не найдено.</p>
     {% endfor %}
 </div>
 {% endblock %}

@@ -1,20 +1,18 @@
-"""Home page view implemented with Django templates (PR6)."""
+"""Home page backed by SQLite queries (PR7)."""
 from django.shortcuts import render
 
-from web_data import get_catalog
+from db.queries import dashboard_stats, list_experiments
 
 
 def index(request):
-    """Display the current counts from JSON-backed domain objects."""
-    users, recipes, experiments = get_catalog()
+    """Display SQLite-backed counters and latest experiments."""
+    stats = dashboard_stats()
     return render(
         request,
         "homepage/index.html",
         {
             "page_title": "Главная",
-            "users_count": len(users),
-            "recipes_count": len(recipes),
-            "experiments_count": len(experiments),
-            "latest": experiments[-3:][::-1],
+            **stats,
+            "latest": list_experiments()[:3],
         },
     )

@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+{% block title %}Статистика — CulinaryLab{% endblock %}
+{% block content %}
+<div class="page-intro">
+    <div class="eyebrow">SQL · COUNT + AVG + GROUP BY</div>
+    <h1>Статистика экспериментов</h1>
+    <p>Агрегаты рассчитываются непосредственно в SQLite.</p>
+</div>
+<section class="stat-grid">
+    <div class="stat-card"><span>Результатов</span>
+        <strong>{{ overall.results_count|default:"0" }}</strong></div>
+    <div class="stat-card"><span>Средняя оценка</span>
+        <strong>{{ overall.average_score|default:"—" }}</strong></div>
+    <div class="stat-card"><span>Диапазон</span>
+        <strong>{{ overall.min_score|default:"—" }}–{{ overall.max_score|default:"—" }}</strong></div>
+</section>
+<section class="surface mt-4">
+    <h2 class="h4">По рецептам</h2>
+    <div class="table-responsive">
+        <table class="table align-middle">
+            <thead>
+                <tr><th>Рецепт</th><th>Экспериментов</th><th>Средняя оценка</th></tr>
+            </thead>
+            <tbody>
+            {% for item in by_recipe %}
+            <tr>
+                <td>{{ item.recipe_name }}</td>
+                <td>{{ item.experiments_count }}</td>
+                <td>{{ item.average_score|default:"—" }}</td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="3">Нет данных.</td></tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</section>
+<section class="surface mt-4">
+    <h2 class="h4">По статусам</h2>
+    {% for item in by_status %}
+    <p><strong>{{ item.status }}</strong> — {{ item.results_count }}
+        (средняя оценка {{ item.average_score }})</p>
+    {% empty %}
+    <p>Нет данных.</p>
+    {% endfor %}
+</section>
+{% endblock %}

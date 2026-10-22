@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+{% block title %}Категории — CulinaryLab{% endblock %}
+{% block content %}
+<div class="page-intro">
+    <div class="eyebrow">SQL · GROUP BY</div>
+    <h1>Рецепты по категориям</h1>
+    <p>Количество рецептов в каждой категории рассчитывается в SQLite.</p>
+</div>
+<div class="row g-3">
+    {% for item in categories %}
+    <div class="col-md-4">
+        <article class="stat-card">
+            <span>{{ item.category }}</span>
+            <strong>{{ item.recipes_count }}</strong>
+        </article>
+    </div>
+    {% empty %}
+    <p class="empty-state">Категории отсутствуют.</p>
+    {% endfor %}
+</div>
+{% endblock %}
