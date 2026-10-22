@@ -5,6 +5,9 @@ on:
     branches: [main]
   pull_request:
 
+permissions:
+  contents: write
+
 jobs:
   verify:
     runs-on: ubuntu-latest
@@ -23,3 +26,15 @@ jobs:
         run: python -m pytest -q
       - name: Check style
         run: python -m flake8 . --extend-exclude=venv,.venv
+      - name: Commit initial SQLite database
+        if: github.event_name == 'push'
+        run: |
+          if git ls-files --error-unmatch data/culinary_lab.sqlite >/dev/null 2>&1; then
+            echo "SQLite database is already tracked."
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add data/culinary_lab.sqlite
+          git commit -m "PR7: add generated SQLite database"
+          git push
