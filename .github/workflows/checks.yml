@@ -24,6 +24,8 @@ jobs:
         run: python manage.py check
       - name: Run tests
         run: python -m pytest -q
+      - name: Run end-to-end smoke checks
+        run: python scripts/smoke_test.py
       - name: Check style
         run: python -m flake8 . --extend-exclude=venv,.venv
       - name: Commit initial SQLite database
