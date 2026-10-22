@@ -1,7 +1,14 @@
-"""Console interface for the OOP version of the project."""
-
+"""Console UI for the shared SQLite-backed culinary experiments system."""
+import sqlite3
 from datetime import date
 
+from db.repository import (
+    cancel_saved_experiment,
+    load_catalog,
+    save_experiment,
+    save_recipe,
+    save_user,
+)
 from experiments import (
     calculate_statistics,
     cancel_experiment,
@@ -14,19 +21,7 @@ from recipes import (
     find_recipes,
     sort_recipes,
 )
-from storage import (
-    load_experiments,
-    load_recipes,
-    load_users,
-    save_experiments,
-    save_recipes,
-    save_users,
-)
 from utils import input_int
-
-USERS_FILE = "data/users.json"
-RECIPES_FILE = "data/recipes.json"
-EXPERIMENTS_FILE = "data/experiments.json"
 
 
 def show_recipes(recipes: list[Recipe]) -> None:
@@ -68,21 +63,14 @@ def ensure_default_user(users: list[User]) -> User:
 
 
 def main() -> None:
-    """Run the application menu using collections of domain objects."""
+    """Manage recipes and experiments in SQLite through the console."""
     try:
-        users = load_users(USERS_FILE)
-        recipes = load_recipes(RECIPES_FILE)
-        experiments = load_experiments(
-            EXPERIMENTS_FILE,
-            users,
-            recipes,
-        )
-    except (ValueError, KeyError) as error:
+        users, recipes, experiments = load_catalog()
+        current_user = ensure_default_user(users)
+        save_user(current_user)
+    except (ValueError, KeyError, sqlite3.Error) as error:
         print(f"Ошибка загрузки данных: {error}")
         return
-
-    current_user = ensure_default_user(users)
-    save_users(USERS_FILE, users)
 
     while True:
         print("\n=== Система учета кулинарных экспериментов ===")
@@ -100,24 +88,21 @@ def main() -> None:
         choice = input("Выберите действие: ").strip()
 
         if choice == "0":
-            save_recipes(RECIPES_FILE, recipes)
-            save_experiments(EXPERIMENTS_FILE, experiments)
-            print("Данные сохранены. До свидания!")
+            print("Изменения уже сохранены в общей базе SQLite.")
             break
 
         try:
             if choice == "1":
                 show_recipes(recipes)
             elif choice == "2":
-                query = input("Введите часть названия: ")
-                show_recipes(find_recipes(recipes, query))
+                show_recipes(find_recipes(recipes, input("Часть названия: ")))
             elif choice == "3":
                 recipe = add_recipe(
                     recipes,
                     input("Название рецепта: "),
                     input("Категория: "),
                 )
-                save_recipes(RECIPES_FILE, recipes)
+                save_recipe(recipe)
                 print(f"Добавлен рецепт: {recipe}")
             elif choice == "4":
                 show_recipes(recipes)
@@ -136,12 +121,12 @@ def main() -> None:
                     input_int("Оценка вкуса от 1 до 10: ", 1),
                     date.today().isoformat(),
                 )
-                save_experiments(EXPERIMENTS_FILE, experiments)
+                save_experiment(experiment)
                 print(f"Создан эксперимент: {experiment}")
             elif choice == "5":
                 experiment_id = input_int("ID эксперимента: ", 1)
-                if cancel_experiment(experiments, experiment_id):
-                    save_experiments(EXPERIMENTS_FILE, experiments)
+                if cancel_saved_experiment(experiment_id):
+                    cancel_experiment(experiments, experiment_id)
                     print("Эксперимент отменен.")
                 else:
                     print("Эксперимент не найден.")
@@ -153,12 +138,12 @@ def main() -> None:
                 print(f'Средняя оценка: {stats["average_score"]}')
             elif choice == "8":
                 category = input("Категория: ")
-                filtered = list(filter_recipes_by_category(recipes, category))
-                show_recipes(filtered)
+                show_recipes(list(filter_recipes_by_category(recipes, category)))
             else:
                 print("Неизвестный пункт меню.")
-        except ValueError as error:
+        except (ValueError, sqlite3.Error) as error:
             print(f"Ошибка: {error}")
+            users, recipes, experiments = load_catalog()
 
 
 if __name__ == "__main__":

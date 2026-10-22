@@ -1,23 +1,23 @@
-"""Ensure a usable SQLite file exists after a fresh clone."""
-from db.database import DB_PATH, get_connection
+"""Initialize the SQLite database only when necessary."""
+from db.database import get_connection, get_database_path
 from db.import_json import rebuild_database
 
 
 def ensure_database() -> None:
-    """Build the SQLite database from JSON when it is absent or empty."""
-    needs_rebuild = not DB_PATH.exists()
+    """Migrate initial JSON only if the database is absent or uninitialized."""
+    from contextlib import closing
+
+    path = get_database_path()
+    needs_rebuild = not path.exists()
     if not needs_rebuild:
         try:
-            with get_connection() as connection:
+            with closing(get_connection(path)) as connection:
                 tables = connection.execute(
                     """
-                    SELECT COUNT(*)
-                    FROM sqlite_master
+                    SELECT COUNT(*) FROM sqlite_master
                     WHERE type = 'table'
                       AND name IN (
-                          'users',
-                          'recipes',
-                          'experiments',
+                          'users', 'recipes', 'experiments',
                           'experiment_results'
                       )
                     """
@@ -26,4 +26,4 @@ def ensure_database() -> None:
         except Exception:
             needs_rebuild = True
     if needs_rebuild:
-        rebuild_database()
+        rebuild_database(path)

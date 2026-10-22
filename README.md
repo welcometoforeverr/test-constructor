@@ -1,106 +1,70 @@
 # CulinaryLab — система учета кулинарных экспериментов
 
-Сквозной учебный проект **Калугина Никиты Александровича, ЭФБО-12-24**
-по дисциплине «Технологии разработки приложений на базе фреймворков».
-Преподаватель: Ящун Татьяна Викторовна.
+Сквозной проект Калугина Никиты Александровича, группа ЭФБО-12-24.
+Дисциплина: «Технологии разработки приложений на базе фреймворков».
 
-## Этапы разработки
+## Этапы проекта
 
-- **ПР1:** базовый консольный сценарий.
-- **ПР2:** коллекции, модули, JSON, исключения и тесты.
-- **ПР3:** объектная модель User, Recipe, Experiment, ExperimentResult.
-- **ПР5:** Django 5.2, HTTP, маршруты и view-функции.
-- **ПР6:** Django templates, context, include и static.
-- **ПР7:** SQLite, SQL, sqlite3 и вывод результатов SQL в Django.
+- ПР1: консольная версия.
+- ПР2: коллекции, модули, JSON, исключения, тесты.
+- ПР3: объектная модель User, Recipe, Experiment, ExperimentResult.
+- ПР5: Django и HTTP.
+- ПР6: Django-шаблоны и статические файлы.
+- ПР7: схема SQLite и SQL-запросы.
 
-Предыдущая JSON-реализация сохранена. В ПР7 Django ORM ещё не используется:
-база доступна напрямую через стандартный модуль `sqlite3`.
+## Единая база данных (дополнительная доработка после ПР7)
 
-## База данных ПР7
+**Консоль и Django теперь используют одну SQLite-базу**:
+`data/culinary_lab.sqlite`.
 
-Файл базы после импорта: `data/culinary_lab.sqlite`.
+- Консоль `main.py` загружает объекты из SQLite через
+  `db/repository.py` и записывает туда рецепты, эксперименты и отмены.
+- Django выполняет SQL-запросы к **той же базе**, изменения видны при
+  обновлении страницы без отдельного импорта.
+- Прежние JSON-файлы сохранены как начальные демонстрационные данные и
+  для восстановления базы при первом запуске.
+- Не нужно запускать `python -m db.import_json` после изменения данных:
+  **эта команда очищает таблицы и восстанавливает JSON-снимок, стирая
+  новые записи SQLite**.
+- Не запускайте консоль на старой копии проекта одновременно с новой:
+  старая версия всё ещё использует JSON.
 
-Схема хранится в `sql/schema.sql` и содержит четыре таблицы:
+Основные таблицы: `users`, `recipes`, `experiments`,
+`experiment_results`. Схема: `sql/schema.sql`. Примеры SQL:
+`sql/queries.sql`. Ввод из форм параметризуется через `?`.
 
-- `users(id, name, email)`;
-- `recipes(id, name, category)`;
-- `experiments(id, user_id, recipe_id, change_description,
-  temperature, duration_minutes, experiment_date, is_cancelled)`;
-- `experiment_results(id, experiment_id, taste_score, status)`.
+## Установка и запуск
 
-Первичные ключи — поля `id`. Внешние ключи связывают experiment с
-пользователем и рецептом, а experiment_results — с experiment.
-
-## Перенос JSON → SQLite
-
-`db/database.py` создаёт подключение через `sqlite3.connect()`, включает
-`PRAGMA foreign_keys = ON` и использует `sqlite3.Row`.
-
-`db/import_json.py` создаёт схему и переносит данные из JSON через
-параметризованные INSERT и `executemany()`.
-
-После клонирования база создаётся командой:
-
-```bash
-python -m db.import_json
+```powershell
+git pull
+python -m pip install -r requirements.txt
+python manage.py check
+python manage.py runserver
 ```
 
-Если файла базы ещё нет, веб-слой также умеет автоматически восстановить его
-из JSON при первом обращении.
+Сайт: http://127.0.0.1:8000/
 
-## SQL-запросы
+В другом терминале (из той же папки):
 
-В `sql/queries.sql` сохранено **14 запросов**, включая:
-
-- обычные SELECT-выборки;
-- фильтрацию через WHERE;
-- JOIN между связанными таблицами;
-- COUNT, AVG, MIN, MAX;
-- GROUP BY;
-- HAVING;
-- сортировку ORDER BY.
-
-Пользовательские значения не вставляются через f-строки. В Python используются
-плейсхолдеры `?`.
-
-## Django и SQLite
-
-Веб-страницы ПР7 получают данные через `db/queries.py`:
-
-- `/` — сводные показатели SQLite;
-- `/recipes/` — рецепты, поиск по названию и категории;
-- `/recipes/categories/` — GROUP BY по категориям;
-- `/recipes/<id>/` — рецепт и агрегированная статистика;
-- `/experiments/` — JOIN и фильтр по минимальной оценке;
-- `/experiments/statistics/` — COUNT/AVG и GROUP BY;
-- `/experiments/<id>/` — полная связанная информация об эксперименте.
-
-Путь данных ПР7:
-
-`SQLite → SQL → sqlite3 → Django view → context → template → HTML`.
-
-## Запуск
-
-Рекомендуется Python 3.11+.
-
-```bash
-python -m venv .venv
-# Windows PowerShell:
-.venv\Scripts\python.exe -m pip install -r requirements.txt
-.venv\Scripts\python.exe -m db.import_json
-.venv\Scripts\python.exe manage.py check
-.venv\Scripts\python.exe manage.py runserver
+```powershell
+python main.py
 ```
 
-Открыть: **http://127.0.0.1:8000/**.
+Выберите **3** для добавления рецепта, **4** для эксперимента, **5** для
+отмены. Обновите страницу сайта: изменения отображаются сразу.
+Создание и редактирование через браузер появится на следующих этапах.
 
 ## Проверка
 
-```bash
-python manage.py check
-python -m pytest -v
+```powershell
+python -m pytest -q
+python scripts/smoke_test.py
 python -m flake8 . --extend-exclude=venv,.venv
 ```
 
-Прохождение материалов Яндекс Практикума подтверждается отдельно в личном
-кабинете.
+Сквозной тест запускает Django, выполняет запросы к страницам,
+добавляет рецепт и эксперимент из консоли и проверяет их появление на
+работающем сайте. Он использует **отдельную временную базу**, не изменяя
+основную.
+
+Курс Яндекс Практикума подтверждается отдельно в личном кабинете.
