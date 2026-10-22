@@ -1,60 +1,85 @@
 # CulinaryLab — система учета кулинарных экспериментов
 
-Сквозной учебный проект **Калугина Никиты Александровича, ЭФБО-12-24**, по дисциплине «Технологии разработки приложений на базе фреймворков». Преподаватель: Ящун Татьяна Викторовна.
+Сквозной учебный проект **Калугина Никиты Александровича, ЭФБО-12-24**
+по дисциплине «Технологии разработки приложений на базе фреймворков».
+Преподаватель: Ящун Татьяна Викторовна.
 
 ## Этапы разработки
 
 - **ПР1:** базовый консольный сценарий.
-- **ПР2:** коллекции, модули, JSON, исключения, тесты.
-- **ПР3:** объектная модель `User`, `Recipe`, `Experiment`, `ExperimentResult`.
-- **ПР5:** Django 5.2, HTTP, URL, view-функции, пять веб-страниц.
-- **ПР6:** шаблоны Django, `render()`, контекст, наследование, `include`, именованные URL, фильтры и собственные статические файлы.
+- **ПР2:** коллекции, модули, JSON, исключения и тесты.
+- **ПР3:** объектная модель User, Recipe, Experiment, ExperimentResult.
+- **ПР5:** Django 5.2, HTTP, маршруты и view-функции.
+- **ПР6:** Django templates, context, include и static.
+- **ПР7:** SQLite, SQL, sqlite3 и вывод результатов SQL в Django.
 
-Код консольной версии (`main.py`) и JSON-объекты из ПР3 сохранены. **Django ORM пока не используется** — это предусмотрено для следующих практик.
+Предыдущая JSON-реализация сохранена. В ПР7 Django ORM ещё не используется:
+база доступна напрямую через стандартный модуль `sqlite3`.
 
-## Django-проект и приложения
+## База данных ПР7
 
-- `culinary_site/` — настройки и корневой URLconf.
-- `homepage/` — главная страница, статистика.
-- `web_recipes/` — список рецептов и страница отдельного рецепта.
-- `web_experiments/` — список экспериментов и страница отдельного эксперимента.
-- `templates/base.html` — общий HTML-каркас.
-- `templates/includes/navigation.html` — общая навигация.
-- `web_recipes/templates/recipes/` — шаблоны рецептов и include карточки.
-- `web_experiments/templates/experiments/` — шаблоны экспериментов и include статуса.
-- `static/homepage/` — собственные CSS, JavaScript и SVG-логотип.
-- `web_data.py` — мост между Django и существующим JSON/ООП.
-- `models/`, `storage.py`, `data/` — сохраненная предметная область ПР3.
-- `tests/` — тестирование кода и HTTP-страниц.
+Файл базы после импорта: `data/culinary_lab.sqlite`.
 
-Имена `web_recipes` и `web_experiments` выбраны во избежание конфликта с существующими модулями `recipes.py` и `experiments.py`.
+Схема хранится в `sql/schema.sql` и содержит четыре таблицы:
 
-## URL-маршруты
+- `users(id, name, email)`;
+- `recipes(id, name, category)`;
+- `experiments(id, user_id, recipe_id, change_description,
+  temperature, duration_minutes, experiment_date, is_cancelled)`;
+- `experiment_results(id, experiment_id, taste_score, status)`.
 
-| Страница | URL | Имя маршрута |
-|---|---|---|
-| Главная | `/` | `homepage:index` |
-| Рецепты | `/recipes/` | `recipes:list` |
-| Отдельный рецепт | `/recipes/1/` | `recipes:detail` |
-| Эксперименты | `/experiments/` | `experiments:list` |
-| Отдельный эксперимент | `/experiments/1/` | `experiments:detail` |
+Первичные ключи — поля `id`. Внешние ключи связывают experiment с
+пользователем и рецептом, а experiment_results — с experiment.
 
-Для неизвестного идентификатора detail-view возвращает HTTP **404** и отображает сообщение в соответствующем шаблоне. Веб-интерфейс на данном этапе доступен только для просмотра; добавление и редактирование сохраняются в консольной версии до появления Django Forms.
+## Перенос JSON → SQLite
 
-## Архитектура ПР6
+`db/database.py` создаёт подключение через `sqlite3.connect()`, включает
+`PRAGMA foreign_keys = ON` и использует `sqlite3.Row`.
 
-Браузер → Django URLconf → view → JSON/объекты Python → context → HTML-шаблон → HTTP-ответ.
+`db/import_json.py` создаёт схему и переносит данные из JSON через
+параметризованные INSERT и `executemany()`.
 
-- `{% extends %}` и `{% block %}` — наследование базового шаблона.
-- `{% include %}` — карточки, статус, навигация.
-- `{{ value }}`, `{% for %}`, `{% if %}`, `{% empty %}` — вывод данных.
-- `{% url 'recipes:detail' recipe.id %}` — именованный URL.
-- `|default`, `|truncatechars`, `|length` — фильтры.
-- `{% load static %}` и `{% static %}` — загрузка CSS, JS и изображения.
+После клонирования база создаётся командой:
 
-Формирование HTML внутри Python через функцию `page()` из ПР5 полностью удалено.
+```bash
+python -m db.import_json
+```
 
-## Установка и запуск
+Если файла базы ещё нет, веб-слой также умеет автоматически восстановить его
+из JSON при первом обращении.
+
+## SQL-запросы
+
+В `sql/queries.sql` сохранено **14 запросов**, включая:
+
+- обычные SELECT-выборки;
+- фильтрацию через WHERE;
+- JOIN между связанными таблицами;
+- COUNT, AVG, MIN, MAX;
+- GROUP BY;
+- HAVING;
+- сортировку ORDER BY.
+
+Пользовательские значения не вставляются через f-строки. В Python используются
+плейсхолдеры `?`.
+
+## Django и SQLite
+
+Веб-страницы ПР7 получают данные через `db/queries.py`:
+
+- `/` — сводные показатели SQLite;
+- `/recipes/` — рецепты, поиск по названию и категории;
+- `/recipes/categories/` — GROUP BY по категориям;
+- `/recipes/<id>/` — рецепт и агрегированная статистика;
+- `/experiments/` — JOIN и фильтр по минимальной оценке;
+- `/experiments/statistics/` — COUNT/AVG и GROUP BY;
+- `/experiments/<id>/` — полная связанная информация об эксперименте.
+
+Путь данных ПР7:
+
+`SQLite → SQL → sqlite3 → Django view → context → template → HTML`.
+
+## Запуск
 
 Рекомендуется Python 3.11+.
 
@@ -62,13 +87,14 @@
 python -m venv .venv
 # Windows PowerShell:
 .venv\Scripts\python.exe -m pip install -r requirements.txt
+.venv\Scripts\python.exe -m db.import_json
 .venv\Scripts\python.exe manage.py check
 .venv\Scripts\python.exe manage.py runserver
 ```
 
-Адрес сайта: **http://127.0.0.1:8000/**.
+Открыть: **http://127.0.0.1:8000/**.
 
-## Тестирование
+## Проверка
 
 ```bash
 python manage.py check
@@ -76,4 +102,5 @@ python -m pytest -v
 python -m flake8 . --extend-exclude=venv,.venv
 ```
 
-Результаты проверяются по выводу команд. Прохождение материалов Яндекс Практикума подтверждается в личном кабинете отдельно.
+Прохождение материалов Яндекс Практикума подтверждается отдельно в личном
+кабинете.
