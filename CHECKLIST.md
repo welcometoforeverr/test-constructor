@@ -19,6 +19,7 @@
 - [x] Спроектированы users, recipes, experiments, experiment_results
 - [x] Определены PRIMARY KEY и FOREIGN KEY
 - [x] Создан sql/schema.sql
+- [x] Создан файл data/culinary_lab.sqlite
 - [x] Создан db/database.py
 - [x] Создан db/import_json.py
 - [x] JSON переносится в SQLite через executemany()
@@ -29,9 +30,17 @@
 - [x] Есть SELECT, WHERE, JOIN, агрегаты, GROUP BY и HAVING
 - [x] Значения передаются параметрами ?
 - [x] Django-представления получают данные из SQLite
-- [x] Есть фильтр рецептов
+- [x] Есть поиск и фильтрация рецептов
 - [x] Есть фильтр экспериментов по оценке
 - [x] Есть страницы статистики
 - [x] README обновлён
-- [x] Добавлены автоматические тесты
 - [x] Git-коммиты имеют префикс PR7:
+
+## Автоматическая проверка GitHub Actions
+
+- [x] python manage.py check — ошибок нет
+- [x] python -m pytest -q — 16 passed
+- [x] python -m flake8 . --extend-exclude=venv,.venv — ошибок нет
+
+Материалы Яндекс Практикума отмечаются только после фактического прохождения
+в личном кабинете.
