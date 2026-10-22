@@ -1,6 +1,5 @@
 """Shared domain persistence: the console writes to the Django SQLite DB."""
 from contextlib import closing
-from sqlite3 import Connection
 
 from db.bootstrap import ensure_database
 from db.database import get_connection
