@@ -8,6 +8,7 @@ import tempfile
 import time
 from pathlib import Path
 from urllib.error import HTTPError, URLError
+from urllib.parse import quote
 from urllib.request import urlopen
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -16,7 +17,7 @@ ROOT = Path(__file__).resolve().parents[1]
 def assert_http(base: str, path: str, status: int, phrase: str = "") -> None:
     """Check an actual Django HTTP response and optional body text."""
     try:
-        with urlopen(base + path, timeout=3) as response:
+        with urlopen(base + quote(path, safe="/?=&%"), timeout=3) as response:
             actual = response.status
             body = response.read().decode("utf-8", "replace")
     except HTTPError as error:
@@ -63,10 +64,10 @@ def http_smoke() -> None:
             raise AssertionError("Django server did not start")
 
         routes = [
-            ("/", 200, "Кулинарная"),
+            ("/", 200, "новый эксперимент"),
             ("/recipes/", 200, "Шоколадный кекс"),
             ("/recipes/1/", 200, "Шоколадный кекс"),
-            ("/recipes/categories/", 200, "Категории"),
+            ("/recipes/categories/", 200, "Рецепты по категориям"),
             ("/experiments/", 200, "Эксперименты"),
             ("/experiments/1/", 200, "Калугин Никита"),
             ("/experiments/statistics/", 200, "Статистика"),
