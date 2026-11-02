@@ -2,9 +2,9 @@
 {% block title %}Статистика — CulinaryLab{% endblock %}
 {% block content %}
 <div class="page-intro">
-    <div class="eyebrow">SQL · COUNT + AVG + GROUP BY</div>
+    <div class="eyebrow">РЕЗУЛЬТАТЫ ЭКСПЕРИМЕНТОВ</div>
     <h1>Статистика экспериментов</h1>
-    <p>Агрегаты рассчитываются непосредственно в SQLite.</p>
+    <p>Оценки и количество опытов по рецептам и статусам.</p>
 </div>
 <section class="stat-grid">
     <div class="stat-card"><span>Результатов</span>
@@ -13,6 +13,8 @@
         <strong>{{ overall.average_score|default:"—" }}</strong></div>
     <div class="stat-card"><span>Диапазон</span>
         <strong>{{ overall.min_score|default:"—" }}–{{ overall.max_score|default:"—" }}</strong></div>
+    <div class="stat-card"><span>Всего минут</span>
+        <strong>{{ overall.total_minutes }}</strong></div>
 </section>
 <section class="surface mt-4">
     <h2 class="h4">По рецептам</h2>
@@ -24,7 +26,7 @@
             <tbody>
             {% for item in by_recipe %}
             <tr>
-                <td>{{ item.recipe_name }}</td>
+                <td>{{ item.name }}</td>
                 <td>{{ item.experiments_count }}</td>
                 <td>{{ item.average_score|default:"—" }}</td>
             </tr>
@@ -38,7 +40,7 @@
 <section class="surface mt-4">
     <h2 class="h4">По статусам</h2>
     {% for item in by_status %}
-    <p><strong>{{ item.status }}</strong> — {{ item.results_count }}
+    <p><strong>{{ item.display_status }}</strong> — {{ item.results_count }}
         (средняя оценка {{ item.average_score }})</p>
     {% empty %}
     <p>Нет данных.</p>

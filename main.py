@@ -1,5 +1,7 @@
 """Console UI for the shared SQLite-backed culinary experiments system."""
-import sqlite3
+
+from django.core.exceptions import ValidationError
+from django.db import DatabaseError
 from datetime import date
 
 from db.repository import (
@@ -68,7 +70,7 @@ def main() -> None:
         users, recipes, experiments = load_catalog()
         current_user = ensure_default_user(users)
         save_user(current_user)
-    except (ValueError, KeyError, sqlite3.Error) as error:
+    except (ValueError, KeyError, DatabaseError, ValidationError) as error:
         print(f"Ошибка загрузки данных: {error}")
         return
 
@@ -141,7 +143,7 @@ def main() -> None:
                 show_recipes(list(filter_recipes_by_category(recipes, category)))
             else:
                 print("Неизвестный пункт меню.")
-        except (ValueError, sqlite3.Error) as error:
+        except (ValueError, DatabaseError, ValidationError) as error:
             print(f"Ошибка: {error}")
             users, recipes, experiments = load_catalog()
 

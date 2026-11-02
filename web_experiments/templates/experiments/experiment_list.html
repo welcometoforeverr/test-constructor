@@ -1,21 +1,25 @@
 {% extends "base.html" %}
-{% block title %}Эксперименты — CulinaryLab{% endblock %}
+{% block title %}Эксперименты — CulinaryLab{% include "includes/pagination.html" %}
+{% endblock %}
 {% block content %}
 <div class="page-intro">
-    <div class="eyebrow">SQL · JOIN + WHERE</div>
+    <div class="eyebrow">ЖУРНАЛ ЭКСПЕРИМЕНТОВ</div>
     <h1>Эксперименты</h1>
-    <p>Данные объединяют experiments, recipes, users и experiment_results.</p>
+    <p>Найдите нужный опыт по рецепту, автору, дате и результату.</p>
 </div>
-<form class="search-form mb-4" method="get"
-      action="{% url 'experiments:list' %}">
-    <label for="min-score" class="form-label mb-0">Минимальная оценка</label>
-    <input class="form-control" id="min-score" name="min_score"
-           type="number" min="1" max="10" value="{{ min_score }}">
+<form class="filter-form mb-4" method="get" action="{% url 'experiments:list' %}">
+    {% for field in filter_form %}
+    <div class="filter-field">
+        {{ field.label_tag }}{{ field }}
+        {% for error in field.errors %}<p class="text-danger" role="alert">{{ error }}</p>{% endfor %}
+    </div>
+    {% endfor %}
     <button class="btn btn-primary" type="submit">Фильтровать</button>
+    <a href="{% url 'experiments:list' %}">Сбросить</a>
 </form>
 <p>
     <a href="{% url 'experiments:statistics' %}">
-        Открыть SQL-статистику →
+        Открыть статистику →
     </a>
 </p>
 <div class="row g-4">
@@ -24,11 +28,11 @@
         <article class="surface h-100">
             <div class="d-flex justify-content-between gap-2">
                 <span class="meta">№{{ experiment.id }}</span>
-                <span class="tag">{{ experiment.taste_score }}/10</span>
+                <span class="tag">{{ experiment.result.taste_score }}/10</span>
             </div>
-            <h2 class="h4 mt-3">{{ experiment.recipe_name }}</h2>
+            <h2 class="h4 mt-3">{{ experiment.recipe.name }}</h2>
             <p>{{ experiment.change_description|truncatechars:110 }}</p>
-            <p class="meta">{{ experiment.user_name }} ·
+            <p class="meta">{{ experiment.user.name }} ·
                 {{ experiment.status }}</p>
             <a href="{% url 'experiments:detail' experiment.id %}">
                 Подробнее →
@@ -39,4 +43,5 @@
     <p class="empty-state">Эксперименты с такой оценкой не найдены.</p>
     {% endfor %}
 </div>
+{% include "includes/pagination.html" %}
 {% endblock %}

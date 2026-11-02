@@ -4,7 +4,7 @@
         {% include "experiments/includes/experiment_status.html" %}
     </div>
     <h2 class="h4 mt-3">{{ experiment.recipe.name }}</h2>
-    <p>{{ experiment.change|truncatechars:110 }}</p>
+    <p>{{ experiment.change_description|truncatechars:110 }}</p>
     <p class="meta">Автор: {{ experiment.user.name|default:"Не указан" }}</p>
     <p class="meta">Вкус: {{ experiment.result.taste_score }}/10</p>
     <a class="card-link"

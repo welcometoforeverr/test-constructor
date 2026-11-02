@@ -1,12 +1,13 @@
 """Live checks for Django pages and console-to-site SQLite synchronization."""
+
 import os
-import shutil
 import socket
 import sqlite3
 import subprocess
 import sys
 import tempfile
 import time
+from contextlib import closing
 from pathlib import Path
 from urllib.error import HTTPError, URLError
 from urllib.parse import quote
@@ -33,7 +34,7 @@ def assert_http(base: str, path: str, status: int, phrase: str = "") -> None:
 
 def console_smoke(db_path: Path) -> None:
     """Create a recipe and an experiment in a disposable SQLite database."""
-    env = {**os.environ, "CULINARY_DB_PATH": str(db_path)}
+    env = {**os.environ, "CULINARY_DB_PATH": str(db_path), "PYTHONIOENCODING": "utf-8"}
     choices = (
         "1\n"
         "3\n"
@@ -52,6 +53,7 @@ def console_smoke(db_path: Path) -> None:
         [sys.executable, "main.py"],
         input=choices,
         text=True,
+        encoding="utf-8",
         capture_output=True,
         cwd=ROOT,
         env=env,
@@ -59,10 +61,10 @@ def console_smoke(db_path: Path) -> None:
         check=False,
     )
     assert result.returncode == 0, result.stderr
-    assert "Борщ" in result.stdout
+    assert "Борщ" in result.stdout, (result.stdout, result.stderr)
     assert "Эксперимент успешный" in result.stdout
 
-    with sqlite3.connect(db_path) as connection:
+    with closing(sqlite3.connect(db_path)) as connection:
         recipe = connection.execute(
             "SELECT id FROM recipes WHERE name = 'Борщ'"
         ).fetchone()
@@ -80,16 +82,26 @@ def http_smoke() -> None:
     with tempfile.TemporaryDirectory() as name:
         sandbox = Path(name)
         db_path = sandbox / "culinary_lab.sqlite"
-        shutil.copyfile(ROOT / "data" / "culinary_lab.sqlite", db_path)
         env = {**os.environ, "CULINARY_DB_PATH": str(db_path)}
+        for command in (["migrate", "--noinput"], ["import_legacy"]):
+            subprocess.run(
+                [sys.executable, "manage.py", *command],
+                cwd=ROOT,
+                env=env,
+                check=True,
+                capture_output=True,
+            )
         with socket.socket() as sock:
             sock.bind(("127.0.0.1", 0))
             port = sock.getsockname()[1]
         base = f"http://127.0.0.1:{port}"
         server = subprocess.Popen(
             [
-                sys.executable, "manage.py", "runserver",
-                f"127.0.0.1:{port}", "--noreload",
+                sys.executable,
+                "manage.py",
+                "runserver",
+                f"127.0.0.1:{port}",
+                "--noreload",
             ],
             cwd=ROOT,
             env=env,

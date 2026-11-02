@@ -1,18 +1,17 @@
-"""Home page backed by SQLite queries (PR7)."""
+"""Home page with ORM counters and a limited recent selection."""
+
 from django.shortcuts import render
 
-from db.queries import dashboard_stats, list_experiments
+from web_experiments.queries import dashboard_stats, experiment_catalog
 
 
 def index(request):
-    """Display SQLite-backed counters and latest experiments."""
-    stats = dashboard_stats()
     return render(
         request,
         "homepage/index.html",
         {
             "page_title": "Главная",
-            **stats,
-            "latest": list_experiments()[:3],
+            **dashboard_stats(),
+            "latest": experiment_catalog({})[:3],
         },
     )

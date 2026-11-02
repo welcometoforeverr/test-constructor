@@ -2,10 +2,10 @@
 {% block title %}Главная — CulinaryLab{% endblock %}
 {% block content %}
 <section class="hero">
-    <div class="eyebrow">КУЛИНАРНАЯ ЛАБОРАТОРИЯ · SQLITE</div>
+    <div class="eyebrow">КУЛИНАРНАЯ ЛАБОРАТОРИЯ</div>
     <h1>Каждый рецепт —<br><span>новый эксперимент.</span></h1>
-    <p class="lead">Данные ПР7 загружаются из SQLite SQL-запросами
-        и передаются в Django-шаблоны.</p>
+    <p class="lead">Сохраняйте изменения рецептов, сравнивайте результаты
+        и находите удачные сочетания.</p>
     <div class="d-flex flex-wrap gap-3 mt-4">
         <a class="btn btn-primary btn-lg" href="{% url 'recipes:list' %}">
             Смотреть рецепты
@@ -34,7 +34,7 @@
         <div class="col-md-4">
             <article class="surface h-100">
                 <p class="meta">Опыт №{{ experiment.id }}</p>
-                <h3 class="h5">{{ experiment.recipe_name }}</h3>
+                <h3 class="h5">{{ experiment.recipe.name }}</h3>
                 <p>{{ experiment.change_description|truncatechars:100 }}</p>
                 <a href="{% url 'experiments:detail' experiment.id %}">
                     Подробнее →

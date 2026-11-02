@@ -1,5 +1,9 @@
 """HTTP and routing checks including PR7 SQLite pages."""
+
 import os
+import pytest
+
+pytestmark = pytest.mark.usefixtures("legacy_seed")
 
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "culinary_site.settings")
 

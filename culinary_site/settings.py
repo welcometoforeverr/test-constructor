@@ -1,4 +1,5 @@
 """Development settings for the culinary experiments Django project."""
+
 import os
 from pathlib import Path
 
@@ -50,7 +51,9 @@ ASGI_APPLICATION = "culinary_site.asgi.application"
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.sqlite3",
-        "NAME": BASE_DIR / "db.sqlite3",
+        "NAME": os.getenv(
+            "CULINARY_DB_PATH", str(BASE_DIR / "data" / "culinary_orm.sqlite3")
+        ),
     }
 }
 LANGUAGE_CODE = "ru-ru"

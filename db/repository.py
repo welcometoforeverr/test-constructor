@@ -1,128 +1,103 @@
-"""Shared domain persistence: the console writes to the Django SQLite DB."""
-from contextlib import closing
+"""Console persistence through the same Django models as the website."""
 
-from db.bootstrap import ensure_database
-from db.database import get_connection
-from models import Experiment, Recipe, User
+import os
+
+import django
+from django.apps import apps
+
+os.environ.setdefault("DJANGO_SETTINGS_MODULE", "culinary_site.settings")
+if not apps.ready:
+    django.setup()
+
+from django.db import transaction  # noqa: E402
+from models import Experiment, Recipe, User  # noqa: E402
+from web_recipes.models import Recipe as StoredRecipe  # noqa: E402
+from web_experiments.models import (  # noqa: E402
+    Experiment as StoredExperiment,
+    ExperimentResult,
+    User as StoredUser,
+)
 
 
-def load_catalog() -> tuple[list[User], list[Recipe], list[Experiment]]:
-    """Load OOP objects from the same SQLite database Django reads."""
-    ensure_database()
-    with closing(get_connection()) as connection:
-        users = [
-            User(row["id"], row["name"], row["email"])
-            for row in connection.execute(
-                "SELECT id, name, email FROM users ORDER BY id"
-            )
-        ]
-        recipes = [
-            Recipe(row["id"], row["name"], row["category"])
-            for row in connection.execute(
-                "SELECT id, name, category FROM recipes ORDER BY id"
-            )
-        ]
-        user_map = {user.id: user for user in users}
-        recipe_map = {recipe.id: recipe for recipe in recipes}
-        experiments = []
-        rows = connection.execute(
-            """
-            SELECT e.*, r.taste_score, r.status
-            FROM experiments AS e
-            JOIN experiment_results AS r ON r.experiment_id = e.id
-            ORDER BY e.id
-            """
-        ).fetchall()
-        for row in rows:
-            data = {
-                "id": row["id"],
-                "user_id": row["user_id"],
-                "recipe_id": row["recipe_id"],
-                "change": row["change_description"],
-                "temperature": row["temperature"],
-                "duration_minutes": row["duration_minutes"],
-                "date": row["experiment_date"],
-                "result": {
-                    "taste_score": row["taste_score"],
-                    "status": row["status"],
+def load_catalog():
+    users = [User(row.pk, row.name, row.email) for row in StoredUser.objects.all()]
+    recipes = [
+        Recipe(row.pk, row.name, row.category)
+        for row in StoredRecipe.objects.order_by("id")
+    ]
+    user_map = {user.id: user for user in users}
+    recipe_map = {recipe.id: recipe for recipe in recipes}
+    experiments = []
+    for row in StoredExperiment.objects.select_related("result").order_by("id"):
+        experiments.append(
+            Experiment.from_data(
+                {
+                    "id": row.pk,
+                    "user_id": row.user_id,
+                    "recipe_id": row.recipe_id,
+                    "change": row.change_description,
+                    "temperature": row.temperature,
+                    "duration_minutes": row.duration_minutes,
+                    "date": row.experiment_date.isoformat(),
+                    "is_cancelled": row.is_cancelled,
+                    "result": {
+                        "taste_score": row.result.taste_score,
+                        "status": row.result.status,
+                    },
                 },
-                "is_cancelled": bool(row["is_cancelled"]),
-            }
-            experiments.append(
-                Experiment.from_data(data, user_map, recipe_map)
+                user_map,
+                recipe_map,
             )
+        )
     return users, recipes, experiments
 
 
-def save_user(user: User) -> None:
-    """Store a user (including the default console user)."""
-    with closing(get_connection()) as connection:
-        with connection:
-            connection.execute(
-                """
-                INSERT INTO users (id, name, email)
-                VALUES (?, ?, ?)
-                ON CONFLICT(id) DO UPDATE SET
-                    name = excluded.name, email = excluded.email
-                """,
-                (user.id, user.name, user.email),
-            )
+def save_user(user):
+    try:
+        item = StoredUser.objects.get(pk=user.id)
+    except StoredUser.DoesNotExist:
+        item = StoredUser(pk=user.id)
+    item.name, item.email = user.name, user.email
+    item.full_clean()
+    item.save()
 
 
-def save_recipe(recipe: Recipe) -> None:
-    """Persist a newly created recipe immediately."""
-    with closing(get_connection()) as connection:
-        with connection:
-            connection.execute(
-                "INSERT INTO recipes (id, name, category) VALUES (?, ?, ?)",
-                (recipe.id, recipe.name, recipe.category),
-            )
+def save_recipe(recipe):
+    item = StoredRecipe(pk=recipe.id, name=recipe.name, category=recipe.category)
+    item.full_clean()
+    item.save(force_insert=True)
 
 
-def save_experiment(experiment: Experiment) -> None:
-    """Atomically insert an experiment and its separate result record."""
-    with closing(get_connection()) as connection:
-        with connection:
-            connection.execute(
-                """
-                INSERT INTO experiments (
-                    id, user_id, recipe_id, change_description,
-                    temperature, duration_minutes, experiment_date,
-                    is_cancelled
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-                """,
-                (
-                    experiment.id,
-                    experiment.user.id,
-                    experiment.recipe.id,
-                    experiment.change,
-                    experiment.temperature,
-                    experiment.duration_minutes,
-                    experiment.date,
-                    int(experiment.is_cancelled),
-                ),
-            )
-            connection.execute(
-                """
-                INSERT INTO experiment_results (
-                    id, experiment_id, taste_score, status
-                ) VALUES (?, ?, ?, ?)
-                """,
-                (
-                    experiment.id,
-                    experiment.id,
-                    experiment.result.taste_score,
-                    experiment.result.status,
-                ),
-            )
+@transaction.atomic
+def save_experiment(experiment):
+    item = StoredExperiment(
+        pk=experiment.id,
+        user_id=experiment.user.id,
+        recipe_id=experiment.recipe.id,
+        change_description=experiment.change,
+        temperature=experiment.temperature,
+        duration_minutes=experiment.duration_minutes,
+        experiment_date=experiment.date,
+        is_cancelled=experiment.is_cancelled,
+    )
+    item.full_clean()
+    item.save(force_insert=True)
+    result = ExperimentResult(
+        experiment=item,
+        taste_score=experiment.result.taste_score,
+        status=experiment.result.status,
+    )
+    result.full_clean()
+    result.save(force_insert=True)
 
 
-def cancel_saved_experiment(experiment_id: int) -> bool:
-    """Mark an existing experiment as cancelled without deleting history."""
-    with closing(get_connection()) as connection:
-        with connection:
-            cursor = connection.execute(
-                "UPDATE experiments SET is_cancelled = 1 WHERE id = ?",
-                (experiment_id,),
-            )
-            return cursor.rowcount > 0
+def cancel_saved_experiment(experiment_id):
+    return (
+        StoredExperiment.objects.filter(pk=experiment_id).update(is_cancelled=True) > 0
+    )
+
+
+def delete_saved_experiment(experiment_id):
+    """Delete an experiment and cascade to its result; retain recipe and user."""
+    deleted, _ = StoredExperiment.objects.filter(pk=experiment_id).delete()
+    return deleted > 0

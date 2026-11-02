@@ -2,9 +2,9 @@
 {% block title %}Рецепты — CulinaryLab{% endblock %}
 {% block content %}
 <div class="page-intro">
-    <div class="eyebrow">SQL · SELECT + WHERE + GROUP BY</div>
+    <div class="eyebrow">КАТАЛОГ РЕЦЕПТОВ</div>
     <h1>Наши рецепты</h1>
-    <p>Список формируется запросом к таблице recipes.</p>
+    <p>Выберите рецепт или найдите его по названию и категории.</p>
 </div>
 <form class="search-form" method="get" action="{% url 'recipes:list' %}">
     <label class="visually-hidden" for="query">Поиск по названию</label>
