@@ -1,38 +1,19 @@
-# Команды Git для ПР1
+# Git для сквозного проекта
 
-После распаковки проекта можно использовать эти команды.
+Репозиторий: https://github.com/welcometoforeverr/test-constructor
 
-## Проверка локального репозитория
-
-```bash
+```powershell
 git status
-git log --oneline
+git log --oneline -10
+git pull --ff-only
 ```
 
-## Если создаёте собственный репозиторий заново
+ПР9 выполнена в рабочей ветке `pr9-django-orm` от контрольной точки `0ec1325`.
+Исходное состояние было чистым и уже сохранённым в Git. Коммиты доработки
+начинаются с `PR9:`. После проверок изменения переносятся в main обычным
+fast-forward и отправляются без принудительной перезаписи истории.
 
-```bash
-git init
-git add .
-git commit -m "Практическая работа 1: конструктор тестов"
+```powershell
+git log --oneline --grep="^PR9:"
+git status --short
 ```
-
-## Подключение GitHub
-
-Создайте пустой репозиторий, например `test-constructor`, затем выполните:
-
-```bash
-git branch -M main
-git remote add origin https://github.com/USERNAME/test-constructor.git
-git push -u origin main
-```
-
-Замените `USERNAME` на своё имя пользователя GitHub.
-
-Если `origin` уже существует:
-
-```bash
-git remote -v
-```
-
-Ссылка на репозиторий понадобится в отчёте по ПР1.

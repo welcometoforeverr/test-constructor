@@ -1,49 +1,74 @@
-# ПР7 — короткая шпаргалка к защите
+# ПР9 — подготовка к защите
 
-**Что изменилось?** До ПР7 данные читались из JSON. Теперь добавлен слой
-SQLite: SQL-запросы выполняются через стандартный модуль sqlite3, а результат
-передаётся в Django-шаблоны.
+Данные проходят цепочку Django view → QuerySet → SQL, сформированный ORM →
+SQLite → объекты моделей → контекст → Django template.
+Консоль использует тот же ORM через db/repository.py; исходные классы ПР3 сохранены.
 
-**Таблицы:** users, recipes, experiments, experiment_results.
+## Что показать
 
-**PRIMARY KEY** — уникальный идентификатор строки. **FOREIGN KEY** — ссылка на
-строку другой таблицы.
+1. `web_recipes/models.py` и `web_experiments/models.py`: поля, ForeignKey,
+   OneToOneField, PROTECT, CASCADE, related_name и ограничения.
+2. `python manage.py showmigrations`: обе миграции приложений отмечены [X].
+3. `import_legacy.py`: источник только для чтения, полный перенос в transaction.atomic,
+   запрет перезаписи непустой базы, full_clean, сохранение ID и контроль количества.
+4. `/recipes/?q=кекс&category=Выпечка` и карточку рецепта: поиск и агрегаты.
+5. `/experiments/`: поиск сразу по 3 полям, фильтры, сортировка и пагинация.
+6. Создать несколько опытов через консоль или shell. Размер страницы — 5 в
+   `web_experiments/views.py`. Шаблон `includes/pagination.html` применяет
+   `{% querystring %}`: меняется page, остальные параметры остаются.
+7. `/experiments/statistics/`: Count, Avg, Min, Max, Sum, группировка через annotate.
+   Рецепты без опытов сохраняются в статистике с нулевым Count.
+8. Отменить опыт из консоли: запись остаётся, статус становится «Отменен»,
+   фильтр «Действующие» исключает её через exclude().
+9. Показать check, pytest, flake8, HTTP smoke и GitHub Actions.
 
-**Почему отдельная result-таблица?** В нашей предметной области результат —
-отдельная сущность и связан с одним экспериментом.
+## Django shell
 
-**SELECT** получает данные. **WHERE** фильтрует строки. **ORDER BY** сортирует.
+```python
+from web_recipes.models import Recipe
+from web_experiments.models import User, Experiment, ExperimentResult
+from web_experiments.queries import experiment_catalog, experiment_statistics
+from db.repository import delete_saved_experiment
 
-**JOIN** объединяет связанные таблицы. Например, страница эксперимента одним
-запросом получает название рецепта, пользователя и результат.
+user = User.objects.get(pk=1)
+recipe = Recipe.objects.create(name="Тестовый суп", category="Супы")
+experiment = Experiment.objects.create(
+    user=user, recipe=recipe, change_description="Новая специя",
+    temperature=95, duration_minutes=25,
+)
+result = ExperimentResult(experiment=experiment, taste_score=8,
+                          status="Эксперимент успешный")
+result.full_clean()
+result.save()
+experiment.cancel()
+list(user.experiments.all())
+list(experiment_catalog({"status": "active", "sort": "score"}))
+experiment_statistics()
+delete_saved_experiment(experiment.pk)
+recipe.delete()
+```
 
-**COUNT/AVG/MIN/MAX** — агрегатные функции.
+create() сразу сохраняет объект. save() сохраняет новый объект или изменения
+существующего. Методы save()/create() сами не вызывают full_clean(): в адаптере
+консоли и команде переноса валидация вызывается явно. Ограничения БД работают
+независимо от вызова валидации. Демонстрационные действия выполняйте на копии базы.
 
-**GROUP BY** собирает строки в группы. В проекте используется для статистики
-по рецептам, категориям и статусам.
+get() возвращает один объект и вызывает DoesNotExist либо MultipleObjectsReturned
+при нуле или нескольких совпадениях. filter() возвращает QuerySet; first() —
+объект или None. Карточки обрабатывают None собственным шаблоном с HTTP 404.
 
-**WHERE и HAVING:** WHERE фильтрует строки до группировки, HAVING — уже
-сформированные группы.
+select_related("recipe", "user", "result") загружает связанные объекты одним
+запросом вместо запроса для каждой карточки. Это проверено числом запросов в тесте.
+annotate() добавляет показатель для каждой записи/группы, aggregate() возвращает
+общий словарь показателей. values() определяет поля группировки.
 
-**sqlite3.Row** позволяет обращаться к полям результата по имени:
-`row["recipe_name"]`.
+makemigrations создаёт описание структуры, migrate применяет его к базе.
+`sqlmigrate web_experiments 0001` показывает SQL миграции без её выполнения.
+Старые таблицы не выдаются за миграции через --fake: выбран перенос в новую базу.
 
-**Почему ? вместо f-строк?** Это параметризованный запрос. Значение передаётся
-отдельно от SQL-кода и защищает от SQL-инъекций.
+Сначала выполняются фильтры, затем order_by, затем Paginator. Вторичный ключ id
+стабилизирует порядок при одинаковых датах/оценках. get_page() обрабатывает
+нечисловые страницы как первую, страницы вне диапазона — как последнюю.
+Поле сортировки выбирается только из SORTS, а дата, оценка и recipe проверяются формой.
 
-**executemany()** выполняет одну INSERT-команду сразу для нескольких записей.
-
-**commit()** сохраняет транзакцию, **rollback()** отменяет её при ошибке.
-
-**Почему не Django ORM?** В ПР7 по методичке изучается чистый SQL и sqlite3.
-ORM подключается на следующих этапах.
-
-**Как создать базу?** `python -m db.import_json`: применяется schema.sql,
-очищаются таблицы и данные из JSON импортируются в SQLite.
-
-**Как работает сайт?**
-SQLite → SQL → sqlite3 → Django view → context → template → HTML.
-
-**Что показать:** `sql/schema.sql`, `sql/queries.sql`, `db/database.py`,
-`db/import_json.py`, страницы `/recipes/`, `/recipes/categories/`,
-`/experiments/`, `/experiments/statistics/`.
+Материалы Яндекс Практикума выполнены и показаны преподавателю по подтверждению студента.
