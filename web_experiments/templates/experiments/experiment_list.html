@@ -1,10 +1,10 @@
 {% extends "base.html" %}
-{% block title %}Эксперименты — CulinaryLab{% include "includes/pagination.html" %}
-{% endblock %}
+{% block title %}Эксперименты — CulinaryLab{% endblock %}
 {% block content %}
 <div class="page-intro">
     <div class="eyebrow">ЖУРНАЛ ЭКСПЕРИМЕНТОВ</div>
     <h1>Эксперименты</h1>
+    <a class="btn btn-primary mb-3" href="{% url 'experiments:create' %}">Новый эксперимент</a>
     <p>Найдите нужный опыт по рецепту, автору, дате и результату.</p>
 </div>
 <form class="filter-form mb-4" method="get" action="{% url 'experiments:list' %}">

@@ -18,7 +18,16 @@
             <dd>{{ experiment.result.taste_score }} / 10</dd></div>
         <div><dt>Итог</dt><dd>{{ experiment.status }}</dd></div>
     </dl>
-    <a href="{% url 'recipes:detail' experiment.recipe_id %}">
+    {% if not experiment.is_cancelled %}
+    <div class="d-flex flex-wrap gap-2 mb-4">
+        <a class="btn btn-primary" href="{% url 'experiments:edit' experiment.id %}">Редактировать</a>
+        <form method="post" action="{% url 'experiments:cancel' experiment.id %}">
+            {% csrf_token %}
+            <button class="btn btn-outline-danger" type="submit">Отменить эксперимент</button>
+        </form>
+    </div>
+    {% endif %}
+    <a href="{{ experiment.recipe.get_absolute_url }}">
         Перейти к рецепту →
     </a>
 </section>

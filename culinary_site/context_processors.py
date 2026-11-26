@@ -2,4 +2,4 @@
 
 
 def project_info(request):
-    return {"project_stage": "ПР10 · Django Admin и ORM"}
+    return {"project_stage": "ПР11 · Django Forms"}

@@ -4,6 +4,7 @@
 <div class="page-intro">
     <div class="eyebrow">КАТАЛОГ РЕЦЕПТОВ</div>
     <h1>Наши рецепты</h1>
+    <a class="btn btn-primary mb-3" href="{% url 'recipes:create' %}">Добавить рецепт</a>
     <p>Выберите рецепт или найдите его по названию и категории.</p>
 </div>
 <form class="search-form" method="get" action="{% url 'recipes:list' %}">
@@ -22,6 +23,9 @@
     {% for recipe in recipes %}
     <div class="col-sm-6 col-lg-4">
         <article class="surface recipe-card h-100">
+            {% if recipe.image %}
+            <img class="img-fluid rounded mb-3" src="{{ recipe.image.url }}" alt="{{ recipe.name }}" loading="lazy">
+            {% endif %}
             <span class="tag">{{ recipe.category }}</span>
             <h2 class="h4 mt-3">{{ recipe.name }}</h2>
             <p class="meta">Экспериментов: {{ recipe.experiments_count }}</p>
