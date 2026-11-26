@@ -3,6 +3,7 @@
 from django import forms
 
 from web_recipes.models import Recipe
+from .models import User
 from .queries import SORTS
 
 
@@ -13,6 +14,9 @@ class ExperimentFilterForm(forms.Form):
     )
     recipe = forms.ModelChoiceField(
         queryset=Recipe.objects.all(), required=False, label="Рецепт"
+    )
+    user = forms.ModelChoiceField(
+        queryset=User.objects.all(), required=False, label="Участник"
     )
     date = forms.DateField(
         required=False, label="Дата", widget=forms.DateInput(attrs={"type": "date"})

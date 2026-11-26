@@ -27,7 +27,7 @@ SORTS = {
 
 
 def experiment_catalog(params):
-    experiments = Experiment.objects.select_related("recipe", "user", "result")
+    experiments = Experiment.objects.with_details()
     experiments = experiments.filter(
         result__taste_score__gte=params.get("min_score") or 1
     )
@@ -40,12 +40,14 @@ def experiment_catalog(params):
         )
     if params.get("recipe"):
         experiments = experiments.filter(recipe=params["recipe"])
+    if params.get("user"):
+        experiments = experiments.filter(user=params["user"])
     if params.get("date"):
-        experiments = experiments.filter(experiment_date=params["date"])
+        experiments = experiments.for_date(params["date"])
     if params.get("status") == "active":
-        experiments = experiments.exclude(is_cancelled=True)
+        experiments = experiments.active()
     elif params.get("status") == "cancelled":
-        experiments = experiments.filter(is_cancelled=True)
+        experiments = experiments.cancelled()
     return experiments.order_by(*SORTS.get(params.get("sort"), SORTS["newest"]))
 
 

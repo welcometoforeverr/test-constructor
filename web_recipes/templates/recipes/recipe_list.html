@@ -26,7 +26,7 @@
             <h2 class="h4 mt-3">{{ recipe.name }}</h2>
             <p class="meta">Экспериментов: {{ recipe.experiments_count }}</p>
             <a class="card-link"
-               href="{% url 'recipes:detail' recipe.id %}">
+               href="{{ recipe.get_absolute_url }}">
                 Открыть рецепт →
             </a>
         </article>

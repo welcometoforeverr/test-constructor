@@ -28,7 +28,7 @@ def experiment_list(request):
 
 def experiment_detail(request, experiment_id):
     experiment = (
-        Experiment.objects.select_related("recipe", "user", "result")
+        Experiment.objects.with_details()
         .filter(pk=experiment_id)
         .first()
     )

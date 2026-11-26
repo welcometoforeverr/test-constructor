@@ -63,3 +63,13 @@ USE_TZ = True
 STATIC_URL = "static/"
 STATICFILES_DIRS = [BASE_DIR / "static"]
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
+
+# Enable SQL diagnostics explicitly in the local development environment.
+SHOW_TOOLBAR = DEBUG and os.getenv("CULINARY_DEBUG_TOOLBAR") == "1"
+if SHOW_TOOLBAR:
+    INSTALLED_APPS += ["debug_toolbar"]
+    MIDDLEWARE.insert(1, "debug_toolbar.middleware.DebugToolbarMiddleware")
+    INTERNAL_IPS = ["127.0.0.1", "::1"]
+TEMPLATES[0]["OPTIONS"]["context_processors"].append(
+    "culinary_site.context_processors.project_info"
+)

@@ -42,3 +42,12 @@ def category_statistics(request):
             "categories": recipe_categories(),
         },
     )
+
+def recipe_slug_detail(request, slug):
+    recipe = recipe_catalog().filter(slug=slug).first()
+    return render(
+        request,
+        "recipes/recipe_detail.html",
+        {"page_title": "Рецепт", "recipe": recipe},
+        status=404 if recipe is None else 200,
+    )
