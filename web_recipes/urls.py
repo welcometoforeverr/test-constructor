@@ -6,6 +6,8 @@ from . import views
 app_name = "recipes"
 urlpatterns = [
     path("", views.recipe_list, name="list"),
+    path("create/", views.recipe_create, name="create"),
+    path("<int:recipe_id>/edit/", views.recipe_edit, name="edit"),
     path("categories/", views.category_statistics, name="categories"),
     path("by-slug/<slug:slug>/", views.recipe_slug_detail, name="slug_detail"),
     path("<int:recipe_id>/", views.recipe_detail, name="detail"),

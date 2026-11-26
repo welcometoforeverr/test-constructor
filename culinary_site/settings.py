@@ -73,3 +73,6 @@ if SHOW_TOOLBAR:
 TEMPLATES[0]["OPTIONS"]["context_processors"].append(
     "culinary_site.context_processors.project_info"
 )
+
+MEDIA_URL = "/media/"
+MEDIA_ROOT = BASE_DIR / "media"

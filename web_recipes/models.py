@@ -16,6 +16,7 @@ class Recipe(models.Model):
         "Название", max_length=200, validators=[MinLengthValidator(3)]
     )
     category = models.CharField("Категория", max_length=100)
+    image = models.ImageField("Фото блюда", upload_to="recipes/", blank=True)
     slug = models.SlugField("Адрес", max_length=64, unique=True, default=recipe_slug)
 
     class Meta:

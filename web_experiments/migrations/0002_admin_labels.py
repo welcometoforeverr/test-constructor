@@ -60,7 +60,8 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name="experiment", name="temperature",
             field=models.PositiveIntegerField(
-                "Температура, °C", validators=[django.core.validators.MinValueValidator(1)],
+                "Температура, °C",
+                validators=[django.core.validators.MinValueValidator(1)],
             ),
         ),
         migrations.AlterField(
@@ -71,7 +72,9 @@ class Migration(migrations.Migration):
         ),
         migrations.AlterField(
             model_name="experiment", name="experiment_date",
-            field=models.DateField("Дата эксперимента", default=django.utils.timezone.localdate),
+            field=models.DateField(
+                "Дата эксперимента", default=django.utils.timezone.localdate,
+            ),
         ),
         migrations.AlterField(
             model_name="experiment", name="is_cancelled",

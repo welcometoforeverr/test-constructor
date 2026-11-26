@@ -3,11 +3,13 @@
 from django.contrib import admin
 
 from web_experiments.admin import ExperimentInline
+from .forms import RecipeForm
 from .models import Recipe
 
 
 @admin.register(Recipe)
 class RecipeAdmin(admin.ModelAdmin):
+    form = RecipeForm
     list_display = ("id", "name", "category")
     list_display_links = ("id", "name")
     search_fields = ("name", "category")

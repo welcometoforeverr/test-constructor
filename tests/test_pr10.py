@@ -22,7 +22,9 @@ def test_admin_and_related_inlines(legacy_seed, client):
     for model in (Recipe, User, Experiment, ExperimentResult):
         name = f"admin:{model._meta.app_label}_{model._meta.model_name}_changelist"
         assert client.get(reverse(name)).status_code == 200
-    for name in ("admin:web_recipes_recipe_change", "admin:web_experiments_user_change"):
+    for name in (
+        "admin:web_recipes_recipe_change", "admin:web_experiments_user_change",
+    ):
         assert client.get(reverse(name, args=[1])).status_code == 200
 
 

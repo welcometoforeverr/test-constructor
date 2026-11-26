@@ -1,6 +1,10 @@
 """Recipe pages using migrated models and ORM aggregation."""
 
-from django.shortcuts import render
+from django.shortcuts import get_object_or_404, redirect, render
+from django.views.decorators.http import require_http_methods
+
+from .forms import RecipeForm
+from .models import Recipe
 
 from .queries import recipe_catalog, recipe_categories
 
@@ -43,6 +47,7 @@ def category_statistics(request):
         },
     )
 
+
 def recipe_slug_detail(request, slug):
     recipe = recipe_catalog().filter(slug=slug).first()
     return render(
@@ -50,4 +55,34 @@ def recipe_slug_detail(request, slug):
         "recipes/recipe_detail.html",
         {"page_title": "Рецепт", "recipe": recipe},
         status=404 if recipe is None else 200,
+    )
+
+
+@require_http_methods(["GET", "POST"])
+def recipe_create(request):
+    form = RecipeForm(
+        request.POST if request.method == "POST" else None,
+        request.FILES if request.method == "POST" else None,
+    )
+    if request.method == "POST" and form.is_valid():
+        return redirect(form.save())
+    return render(
+        request, "includes/edit_form.html",
+        {"form": form, "heading": "Добавить рецепт", "back_url": "recipes:list"},
+    )
+
+
+@require_http_methods(["GET", "POST"])
+def recipe_edit(request, recipe_id):
+    recipe = get_object_or_404(Recipe, pk=recipe_id)
+    form = RecipeForm(
+        request.POST if request.method == "POST" else None,
+        request.FILES if request.method == "POST" else None,
+        instance=recipe,
+    )
+    if request.method == "POST" and form.is_valid():
+        return redirect(form.save())
+    return render(
+        request, "includes/edit_form.html",
+        {"form": form, "heading": "Редактировать рецепт", "back_url": "recipes:list"},
     )
